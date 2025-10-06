@@ -141,8 +141,8 @@
         // Listener principal del estado de autenticación
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // REDIRECCIÓN CLAVE: Si el usuario está logueado, vamos a la página principal.
-                window.location.href = 'mainpage.html';
+                // REDIRECCIÓN CLAVE CORREGIDA: Si el usuario está logueado, vamos a la página principal usando la ruta relativa segura.
+                window.location.href = './mainpage.html';
             }
         });
     </script>
