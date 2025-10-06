@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es" class="light-theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Partículas Responsivo</title>
+    <!-- Carga de Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Configuramos la fuente Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Evita barras de desplazamiento horizontal */
+            transition: background-color 0.5s ease; /* Transición suave para el fondo */
+        }
+
+        /* Estilos del Tema Claro (por defecto) */
+        .light-theme {
+            background-color: #ffffff; /* Fondo blanco */
+            color: #0d1117; /* Texto negro */
+        }
+        /* Estilos del Tema Oscuro */
+        .dark-theme {
+            background-color: #0d1117; /* Fondo oscuro casi negro */
+            color: #ffffff; /* Texto blanco */
+        }
+        
+        /* El canvas debe cubrir todo el área de visualización y estar fijo */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0; /* Asegura que esté detrás del contenido principal */
+        }
+
+        /* Estilos específicos para la animación y el blur */
+        
+        /* 1. Menú Lateral (Inicialmente fuera de pantalla) */
+        #sidebar {
+            transform: translateX(-100%); /* Oculto a la izquierda */
+            transition: transform 0.3s cubic-bezier(0.3, 0.9, 0.5, 1.25); /* Curva de rebote tipo manga/comic */
+        }
+        
+        /* 1.1. Estado Abierto del Menú */
+        #sidebar.open {
+            transform: translateX(0); /* Desliza hacia adentro */
+        }
+
+        /* 2. Contenido Principal (Para aplicar el desenfoque) */
+        #main-content {
+            transition: filter 0.3s ease-in-out;
+        }
+
+        /* 2.1. Estado de Desenfoque */
+        #main-content.blur-active {
+            filter: blur(8px); /* Aplica el desenfoque */
+            pointer-events: none; /* Desactiva la interacción con el contenido desenfocado */
+        }
+
+        /* 3. Botón de Hamburguesa (Efecto Hover "Manga/Explosión") */
+        #menu-button:hover #burger-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        #menu-button {
+            transition: all 0.2s ease-out; /* Animación de rebote al hacer hover */
+        }
+
+        /* Estilos para el Switch de Tema */
+        #theme-switch:checked + .slider {
+            background-color: #3b82f6; /* Azul de Tailwind */
+        }
+        #theme-switch:checked + .slider::before {
+            transform: translateX(20px);
+        }
+        .slider {
+            background-color: #ccc;
+            transition: 0.4s;
+        }
+        .slider::before {
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Canvas para el sistema de partículas -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- 
+        ====================================================
+        MENÚ LATERAL (Sidebar)
+        ==================================================== 
+    -->
+    <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-100/95 dark-theme:bg-gray-900/95 backdrop-blur-lg shadow-2xl z-50 p-6 flex flex-col space-y-4">
+        <!-- Título del Menú -->
+        <div class="text-2xl font-bold text-cyan-600 dark-theme:text-cyan-400 mb-6">Opciones</div>
+
+        <!-- Opciones de Tema dentro del Menú -->
+        <div class="flex items-center justify-between py-2 border-b border-gray-300 dark-theme:border-gray-700">
+            <span class="text-gray-700 dark-theme:text-gray-300 font-semibold">Modo Oscuro</span>
+            <label class="relative inline-block w-12 h-6">
+                <input type="checkbox" id="theme-switch" class="opacity-0 w-0 h-0" onchange="toggleTheme()">
+                <span class="slider absolute cursor-pointer inset-0 rounded-full before:absolute before:rounded-full before:h-4 before:w-4 before:bottom-1 before:bg-white dark-theme:before:bg-gray-800"></span>
+            </label>
+        </div>
+        
+        <!-- Separador -->
+        <div class="border-t border-gray-300 dark-theme:border-gray-700 pt-4"></div>
+        
+        <!-- Enlaces del Menú -->
+        <!-- 💛 COMIENZA AQUÍ - Copia desde aquí para agregar un nuevo botón de menú 💛 -->
+        <a href="#" class="text-gray-700 dark-theme:text-gray-300 hover:text-white hover:bg-cyan-600/30 p-3 rounded-xl transition duration-200 flex items-center space-x-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 001-1h3m-6 0a2 2 000-2-2V7M4 10h16v10a1 1 01-1 1H5a1 1 01-1-1V10z"></path></svg>
+            <span>Inicio</span>
+        </a>
+        <a href="#" class="text-gray-700 dark-theme:text-gray-300 hover:text-white hover:bg-cyan-600/30 p-3 rounded-xl transition duration-200 flex items-center space-x-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 01-9 9 9 9 01-9-9 9 9 019-9 9 9 019 9z"></path></svg>
+            <span>Servicios</span>
+        </a>
+        <a href="#" class="text-gray-700 dark-theme:text-gray-300 hover:text-white hover:bg-cyan-600/30 p-3 rounded-xl transition duration-200 flex items-center space-x-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M16 11h.01M3 21h18A2 2 00021 19V5a2 2 000-2-2H5a2 2 000-2 2v14a2 2 0002 2z"></path></svg>
+            <span>Proyectos</span>
+        </a>
+        <a href="#" class="text-gray-700 dark-theme:text-gray-300 hover:text-white hover:bg-cyan-600/30 p-3 rounded-xl transition duration-200 flex items-center space-x-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0002.22 0L21 8M5 19h14a2 2 0002-2V7a2 2 000-2-2H5a2 2 000-2 2v10a2 2 0002 2z"></path></svg>
+            <span>Contacto</span>
+        </a>
+        <!-- 💛 TERMINA AQUÍ - Pega el nuevo botón antes de este comentario 💛 -->
+    </nav>
+    
+    <!-- Botón para Abrir/Cerrar el Menú (Z-Index alto para que esté sobre el contenido) -->
+    <button id="menu-button" class="fixed top-4 left-4 z-40 p-3 rounded-full bg-blue-600 shadow-xl hover:bg-blue-700 transition duration-300 transform hover:scale-105" onclick="toggleMenu()">
+        <!-- Ícono de Hamburguesa (SVG) -->
+        <svg id="burger-icon" class="w-6 h-6 text-white transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+    <!-- Overlay transparente para cerrar el menú al hacer clic fuera -->
+    <div id="overlay" class="fixed inset-0 bg-transparent z-40 hidden" onclick="toggleMenu()"></div>
+
+    <!-- 
+        ====================================================
+        CONTENIDO PRINCIPAL Y RESPONSIVE
+        ==================================================== 
+    -->
+    <div id="main-content" class="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        
+        <div class="bg-gray-100/80 dark-theme:bg-white/10 backdrop-blur-sm p-8 md:p-12 rounded-2xl shadow-2xl max-w-lg w-full transform transition duration-500 hover:scale-[1.01] border border-gray-300 dark-theme:border-white/20">
+            
+            <!-- El título usa solo clases de color de texto ahora (heredadas del body) -->
+            <h1 id="main-title" class="text-4xl md:text-6xl font-extrabold mb-4 transition-colors duration-300">
+                Fondo Dinámico
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-700 dark-theme:text-gray-200 mb-6">
+                Un sistema de partículas elegante y totalmente responsivo.
+            </p>
+            <p class="text-sm text-gray-500 dark-theme:text-gray-400 mb-8">
+                Observa cómo la animación se ajusta al tamaño de tu ventana y reacciona a tu cursor.
+            </p>
+            
+            <button class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105">
+                ¡Explorar!
+            </button>
+        </div>
+    </div>
+
+    <!-- Script para la lógica del sistema de partículas y del menú -->
+    <script>
+        // Variables de configuración globales
+        const config = {
+            particleCount: 80, 
+            maxRadius: 3,
+            maxSpeed: 0.5,
+            lineDistance: 120, // Ya no se usa para conectar, pero se mantiene por si se necesita
+            lineColor: 'rgba(0, 0, 0, 0.2)', // Ya no se usa
+            particleColor: '#000000', 
+        };
+
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let width, height;
+        // Se mantiene el objeto mouse, aunque ya no se usa para las conexiones,
+        // esto hace que las partículas reboten al acercarse al cursor.
+        let mouse = { x: null, y: null, radius: (config.lineDistance * 2) }; 
+
+        // Elementos del DOM
+        const html = document.documentElement;
+        const body = document.body;
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const overlay = document.getElementById('overlay');
+        const themeSwitch = document.getElementById('theme-switch');
+        const mainTitle = document.getElementById('main-title');
+
+        // -----------------------------
+        // A. Lógica del Tema Claro/Oscuro
+        // -----------------------------
+
+        /**
+         * Establece el tema de la aplicación ('light' o 'dark').
+         * @param {string} theme - El nombre del tema.
+         */
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                html.classList.remove('light-theme');
+                html.classList.add('dark-theme');
+                
+                // Partículas (Fondo oscuro)
+                config.particleColor = '#ffffff'; 
+                // config.lineColor = 'rgba(52, 211, 235, 0.15)'; // Eliminado
+                
+                themeSwitch.checked = true;
+
+            } else {
+                html.classList.remove('dark-theme');
+                html.classList.add('light-theme');
+                
+                // Partículas (Fondo claro)
+                config.particleColor = '#000000'; 
+                // config.lineColor = 'rgba(0, 0, 0, 0.2)'; // Eliminado
+                
+                themeSwitch.checked = false;
+            }
+        }
+        
+        /**
+         * Alterna el tema entre claro y oscuro.
+         */
+        function toggleTheme() {
+            const isDark = html.classList.contains('dark-theme');
+            setTheme(isDark ? 'light' : 'dark');
+        }
+
+
+        // -----------------------------
+        // B. Lógica del Menú Lateral
+        // -----------------------------
+
+        /**
+         * Alterna la visibilidad del menú lateral y aplica el efecto blur.
+         */
+        function toggleMenu() {
+            const isOpen = sidebar.classList.toggle('open');
+            
+            if (isOpen) {
+                mainContent.classList.add('blur-active');
+                overlay.classList.remove('hidden');
+            } else {
+                setTimeout(() => {
+                    mainContent.classList.remove('blur-active');
+                    overlay.classList.add('hidden');
+                }, 200); 
+            }
+        }
+        
+        // -----------------------------
+        // C. Lógica del Sistema de Partículas (Cubos)
+        // -----------------------------
+
+        // 1. Clase Partícula: Ahora dibuja un cubo (cuadrado)
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * config.maxRadius + 1;
+                this.vx = (Math.random() - 0.5) * config.maxSpeed;
+                this.vy = (Math.random() - 0.5) * config.maxSpeed;
+            }
+
+            draw() {
+                ctx.fillStyle = config.particleColor; 
+                // Dibuja un cuadrado centrado en (this.x, this.y)
+                const size = this.radius * 2;
+                // Usamos fillRect para dibujar un cubo (cuadrado 2D)
+                ctx.fillRect(this.x - this.radius, this.y - this.radius, size, size);
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Detección de colisión con los bordes (rebotar)
+                if (this.x + this.radius > width || this.x - this.radius < 0) {
+                    this.vx = -this.vx;
+                }
+                if (this.y + this.radius > height || this.y - this.radius < 0) {
+                    this.vy = -this.vy;
+                }
+
+                // Detección de colisión con el ratón (rebotar suavemente)
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = this.x - mouse.x;
+                    const dy = this.y - mouse.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < mouse.radius) {
+                        // Calcular la fuerza de repulsión
+                        const angle = Math.atan2(dy, dx);
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        
+                        // Aplicar un pequeño impulso en la dirección opuesta
+                        this.vx += Math.cos(angle) * force * 0.1;
+                        this.vy += Math.sin(angle) * force * 0.1;
+                        
+                        // Limitar la velocidad para que no se disparen
+                        const maxInteractionSpeed = 2;
+                        this.vx = Math.min(Math.max(this.vx, -maxInteractionSpeed), maxInteractionSpeed);
+                        this.vy = Math.min(Math.max(this.vy, -maxInteractionSpeed), maxInteractionSpeed);
+                    }
+                }
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < config.particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Ajuste responsivo de la cantidad de partículas
+            config.particleCount = width < 768 ? 50 : 80;
+
+            if (particles.length === 0 || particles.length !== config.particleCount) {
+                 initParticles();
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        
+        // --- FUNCIÓN connectParticles ELIMINADA ---
+        
+        function animate() {
+            // Limpieza con una capa semitransparente para efecto "rastro" suave
+            let clearColor = html.classList.contains('dark-theme') ? 'rgba(13, 17, 23, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+            ctx.fillStyle = clearColor;
+            ctx.fillRect(0, 0, width, height);
+
+            // connectParticles(); // Eliminada
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Manejo del Ratón (se mantiene para la interacción de rebote)
+        window.addEventListener('mousemove', function(e) {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        window.addEventListener('mouseout', function() {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        // Iniciar la aplicación al cargar
+        window.onload = function() {
+             resizeCanvas(); 
+             setTheme('light'); // Forzar inicio en modo claro (partículas negras, fondo blanco)
+             animate();
+        }
+    </script>
+</body>
+</html>
