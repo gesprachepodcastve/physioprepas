@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHYSIO-PREPAS | Acceso</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
+        :root {
+            --bg-color-light: #f0f4f8;
+            --bg-container-light: #ffffff;
+        }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--bg-color-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .auth-card {
+            background-color: var(--bg-container-light);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 400px;
+            width: 90%;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        .auth-button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen"> 
+        <div class="auth-card">
+            <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Acceso de Estudiantes</h2>
+            
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email registrado</label>
+                    <input type="email" id="email" required class="input-field" placeholder="ejemplo@clase.com">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" id="password" required class="input-field" placeholder="Contraseña asignada">
+                </div>
+                
+                <button type="submit" id="main-auth-button" class="auth-button bg-blue-600 text-white hover:bg-blue-700">
+                    Acceder a la Plataforma
+                </button>
+
+                <p id="auth-error-message" class="text-red-500 text-center text-sm mt-3 hidden">
+                    Mensaje de error
+                </p>
+
+                <div class="text-center pt-4">
+                    <a href="https://forms.gle/yVMN8S28qtZn1ovJ8" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                        ¿Aún no tienes cuenta? Regístrate aquí.
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+        
+        // ** ⚠️ CONFIGURACIÓN DE FIREBASE ** (ACTUALICE ESTOS VALORES)
+        const MY_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyDuUX0xG6-JuAQUrHSMTRDPwyEPq5dwjm4", // <-- ¡Reemplace!
+            authDomain: "physio-prepas.firebaseapp.com",
+            projectId: "physio-prepas",
+            storageBucket: "physio-prepas.firebasestorage.app",
+            messagingSenderId: "937118566487",
+            appId: "1:937118566487:web:7183efb01604fd8d107b12"
+        };
+        // FIN DE ** CONFIGURACIÓN DE FIREBASE **
+        
+        const app = initializeApp(MY_FIREBASE_CONFIG);
+        const auth = getAuth(app);
+
+        // Referencias del DOM
+        const authForm = document.getElementById('auth-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const mainAuthButton = document.getElementById('main-auth-button');
+        const authErrorMessage = document.getElementById('auth-error-message');
+        
+        const firebaseErrorMessages = {
+            'auth/invalid-credential': 'Credenciales no válidas. Verifica tu email y contraseña.',
+            'default': 'Ocurrió un error al iniciar sesión. Inténtalo de nuevo.'
+        };
+
+        function showAuthError(code) {
+            const message = firebaseErrorMessages[code] || firebaseErrorMessages['default'];
+            authErrorMessage.textContent = message;
+            authErrorMessage.classList.remove('hidden');
+        }
+
+        function hideAuthError() {
+            authErrorMessage.classList.add('hidden');
+        }
+
+        // Listener para el formulario de Login
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAuthError();
+            
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            mainAuthButton.disabled = true;
+            mainAuthButton.textContent = 'Accediendo...';
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Auth Error:", error);
+                showAuthError(error.code);
+            } finally {
+                mainAuthButton.disabled = false;
+                mainAuthButton.textContent = 'Acceder a la Plataforma';
+            }
+        });
+
+        // Listener principal del estado de autenticación
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // REDIRECCIÓN CLAVE: Si el usuario está logueado, vamos a la página principal.
+                window.location.href = 'mainpage.html';
+            }
+        });
+    </script>
+</body>
+</html>
