@@ -1,74 +1,143 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="light-theme">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PHYSIO-PREPAS | Acceso</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CARGA DE GOOGLE RECAPTCHA V2 (Invisible) -->
+    <!-- Usamos la API V2 estándar que funciona directamente con la autenticación de Firebase
+         y la clave proporcionada (6LcSTeArAAAAAB_pU20AGjGk36aI07vq5dU3eBf7). -->
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
-        :root {
-            --bg-color-light: #f0f4f8;
-            --bg-container-light: #ffffff;
-        }
+        
         body {
             font-family: 'Open Sans', sans-serif;
-            background-color: var(--bg-color-light);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overflow: hidden; 
+            transition: background-color 0.5s ease;
         }
+
+        .light-theme { background-color: #ffffff; color: #0d1117; }
+        .dark-theme { background-color: #0d1117; color: #ffffff; }
+
+        #particles-canvas {
+            position: fixed; top: 0; left: 0; z-index: 0;
+        }
+
         .auth-card {
-            background-color: var(--bg-container-light);
+            background-color: #ffffff; 
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
             max-width: 400px;
             width: 90%;
+            z-index: 10; 
+            position: relative;
+            transition: background-color 0.5s ease;
         }
+
+        .dark-theme .auth-card {
+            background-color: #1a202c; 
+            box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.15);
+        }
+        
         .input-field {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-top: 5px;
-            margin-bottom: 15px;
+            width: 100%; padding: 12px; border: 1px solid #e5e7eb;
+            border-radius: 8px; margin-top: 5px; margin-bottom: 15px;
+            transition: all 0.2s ease;
         }
+
+        .dark-theme .input-field {
+            background-color: #2d3748; border-color: #4a5568; color: #ffffff;
+        }
+        
         .auth-button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 700;
+            width: 100%; padding: 12px; border-radius: 8px; font-weight: 700;
+        }
+
+        /* Oculta elementos en el modo de Recuperación (recovery-mode) */
+        .recovery-mode #password-field,
+        .recovery-mode #login-button,
+        .recovery-mode #recover-password-link {
+            display: none !important;
+        }
+
+        /* Oculta elementos en el modo de Login (login-mode) */
+        .login-mode #recovery-button,
+        .login-mode #back-to-login-link {
+            display: none !important;
+        }
+        
+        /* Aseguramos que el campo email siempre se muestre */
+        #email-field {
+            display: block !important;
         }
     </style>
 </head>
-<body>
+<body class="light-theme">
 
-    <div id="auth-screen"> 
-        <div class="auth-card">
-            <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Acceso de Estudiantes</h2>
+    <canvas id="particles-canvas"></canvas>
+
+    <div id="auth-screen" class="relative z-10 flex justify-center items-center w-full"> 
+        <!-- El auth-card ahora tiene una clase dinámica: login-mode o recovery-mode -->
+        <div id="auth-card" class="auth-card login-mode">
+            <h2 class="text-3xl font-bold mb-6 text-center text-gray-800 dark-theme:text-gray-100 transition-colors duration-300">
+                Acceso de Estudiantes
+            </h2>
             
             <form id="auth-form" class="space-y-4">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email registrado</label>
+                
+                <!-- CAMPO EMAIL (Siempre visible) -->
+                <div id="email-field">
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark-theme:text-gray-300">Email registrado</label>
                     <input type="email" id="email" required class="input-field" placeholder="ejemplo@clase.com">
                 </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                    <input type="password" id="password" required class="input-field" placeholder="Contraseña asignada">
+                
+                <!-- CAMPO CONTRASEÑA (Oculto en modo recovery) -->
+                <div id="password-field">
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark-theme:text-gray-300">Contraseña</label>
+                    <input type="password" id="password" class="input-field" placeholder="Contraseña asignada">
                 </div>
                 
-                <button type="submit" id="main-auth-button" class="auth-button bg-blue-600 text-white hover:bg-blue-700">
+                <!-- BOTÓN DE LOGIN (Oculto en modo recovery) -->
+                <button type="submit" id="login-button" class="auth-button bg-blue-600 text-white hover:bg-blue-700 transition duration-300">
                     Acceder a la Plataforma
                 </button>
+                
+                <!-- BOTÓN DE RECUPERACIÓN (Oculto en modo login) -->
+                <button type="button" id="recovery-button" class="auth-button bg-orange-500 text-white hover:bg-orange-600 transition duration-300" onclick="handlePasswordRecovery(event)">
+                    Enviar Email de Recuperación
+                </button>
 
+                <!-- CONTENEDOR OCULTO DE RECAPTCHA (Necesario para la API) -->
+                <div id="recaptcha-container" class="g-recaptcha hidden"></div>
+                
+                <!-- Mensaje de error/éxito -->
                 <p id="auth-error-message" class="text-red-500 text-center text-sm mt-3 hidden">
                     Mensaje de error
                 </p>
 
-                <div class="text-center pt-4">
-                    <a href="https://forms.gle/yVMN8S28qtZn1ovJ8" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                <div class="text-center pt-4 flex flex-col items-center space-y-2">
+                    
+                    <!-- 3. ENLACE PARA VOLVER AL LOGIN (Solo visible en modo recovery) -->
+                    <a href="#" id="back-to-login-link" class="text-sm text-gray-600 hover:text-blue-800 font-medium dark-theme:text-gray-400 hover:dark-theme:text-blue-400 transition-colors" onclick="setMode('login'); return false;">
+                        ← Volver al Login
+                    </a>
+
+                    <!-- ENLACE DE RECUPERACIÓN (Solo visible en modo login) -->
+                    <a href="#" id="recover-password-link" class="text-sm text-gray-600 hover:text-blue-800 font-medium dark-theme:text-gray-400 hover:dark-theme:text-blue-400 transition-colors" onclick="setMode('recovery'); return false;">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                    
+                    <!-- ENLACE DE REGISTRO (Siempre visible) -->
+                    <a href="https://forms.gle/yVMN8S28qtZn1ovJ8" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 font-medium dark-theme:text-blue-400">
                         ¿Aún no tienes cuenta? Regístrate aquí.
                     </a>
                 </div>
@@ -76,9 +145,110 @@
         </div>
     </div>
 
+    <!-- Las funciones globales se definen en un script estándar -->
+    <script>
+        // Referencias del DOM para las funciones globales
+        const authCard = document.getElementById('auth-card');
+        const recoveryButton = document.getElementById('recovery-button');
+        const loginButton = document.getElementById('login-button');
+        const emailInput = document.getElementById('email');
+        const authErrorMessage = document.getElementById('auth-error-message');
+        
+        // reCAPTCHA globals
+        let recaptchaWidgetId; 
+        // 🚨 CLAVE RECAPTCHA PROPORCIONADA POR EL USUARIO 🚨
+        const RECAPTCHA_SITE_KEY = '6LcSTeArAAAAAB_pU20AGjGk36aI07vq5dU3eBf7';
+
+        const firebaseErrorMessages = {
+            'auth/invalid-credential': 'Credenciales no válidas. Verifica tu email y contraseña.',
+            'auth/invalid-email': 'El formato del email es incorrecto.',
+            'auth/user-not-found': 'No existe un usuario con ese email.',
+            'default': 'Ocurrió un error. Inténtalo de nuevo. Asegúrate de que el email esté escrito correctamente.'
+        };
+        
+        function showAuthError(code, isSuccess = false) {
+            const message = firebaseErrorMessages[code] || code || firebaseErrorMessages['default'];
+            
+            if (isSuccess) {
+                authErrorMessage.classList.remove('text-red-500');
+                authErrorMessage.classList.add('text-green-500');
+            } else {
+                authErrorMessage.classList.remove('text-green-500');
+                authErrorMessage.classList.add('text-red-500');
+            }
+
+            authErrorMessage.textContent = message;
+            authErrorMessage.classList.remove('hidden');
+        }
+
+        function hideAuthError() {
+            authErrorMessage.classList.add('hidden');
+        }
+
+        /**
+         * Alterna el modo del formulario (login o recovery)
+         * @param {'login' | 'recovery'} mode 
+         */
+        window.setMode = function(mode) {
+            hideAuthError();
+            if (mode === 'recovery') {
+                authCard.classList.remove('login-mode');
+                authCard.classList.add('recovery-mode');
+                recoveryButton.textContent = 'Enviar Email de Recuperación';
+            } else {
+                authCard.classList.remove('recovery-mode');
+                authCard.classList.add('login-mode');
+                // Al volver al login, restauramos el mensaje
+                loginButton.textContent = 'Acceder a la Plataforma'; 
+            }
+        }
+        
+        // LÓGICA DE RECUPERACIÓN: Inicia el proceso de reCAPTCHA
+        window.handlePasswordRecovery = function(e) {
+            e.preventDefault();
+            
+            // Si el evento viene del botón en modo recovery, procederemos.
+            if (authCard.classList.contains('recovery-mode')) {
+                hideAuthError();
+
+                const email = emailInput.value;
+                if (!email) {
+                    showAuthError("Por favor, introduce tu email para recuperar la contraseña.");
+                    return;
+                }
+                
+                if (typeof grecaptcha !== 'undefined' && recaptchaWidgetId) {
+                    recoveryButton.textContent = 'Verificando seguridad...';
+                    // Esto inicia el Invisible reCAPTCHA, que llama a onRecaptchaSuccess
+                    grecaptcha.execute(recaptchaWidgetId); 
+                } else {
+                     showAuthError("El servicio de seguridad (reCAPTCHA) no se cargó correctamente.");
+                }
+            } else {
+                // Si el clic viene del enlace en modo login, solo cambiamos el modo.
+                setMode('recovery');
+            }
+        }
+        
+        // 3. FUNCIÓN DE INICIALIZACIÓN DE reCAPTCHA
+        window.onloadCallback = function() {
+            // Inicializa el reCAPTCHA Invisible y asigna el callback de éxito
+            recaptchaWidgetId = grecaptcha.render('recaptcha-container', { 
+                'sitekey': RECAPTCHA_SITE_KEY, 
+                'size': 'invisible', 
+                'callback': 'onRecaptchaSuccess'
+            });
+        };
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
         
         // ** ⚠️ CONFIGURACIÓN DE FIREBASE ** (ACTUALICE ESTOS VALORES)
         const MY_FIREBASE_CONFIG = {
@@ -89,62 +259,174 @@
             messagingSenderId: "937118566487",
             appId: "1:937118566487:web:7183efb01604fd8d107b12"
         };
-        // FIN DE ** CONFIGURACIÓN DE FIREBASE **
         
         const app = initializeApp(MY_FIREBASE_CONFIG);
         const auth = getAuth(app);
 
-        // Referencias del DOM
-        const authForm = document.getElementById('auth-form');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const mainAuthButton = document.getElementById('main-auth-button');
-        const authErrorMessage = document.getElementById('auth-error-message');
+        // -----------------------------
+        // E. Lógica de Recuperación y reCAPTCHA
+        // -----------------------------
         
-        const firebaseErrorMessages = {
-            'auth/invalid-credential': 'Credenciales no válidas. Verifica tu email y contraseña.',
-            'default': 'Ocurrió un error al iniciar sesión. Inténtalo de nuevo.'
-        };
-
-        function showAuthError(code) {
-            const message = firebaseErrorMessages[code] || firebaseErrorMessages['default'];
-            authErrorMessage.textContent = message;
-            authErrorMessage.classList.remove('hidden');
-        }
-
-        function hideAuthError() {
-            authErrorMessage.classList.add('hidden');
-        }
-
-        // Listener para el formulario de Login
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            hideAuthError();
+        /**
+         * 1. FUNCIÓN DE CALLBACK reCAPTCHA: Se llama al verificar el usuario.
+         * Debe ser global para el script de reCAPTCHA.
+         */
+        window.onRecaptchaSuccess = async function(token) {
+            // Las variables DOM y showAuthError son globales, así que las podemos usar aquí.
+            hideAuthError(); 
             
-            const email = emailInput.value;
-            const password = passwordInput.value;
+            const email = emailInput.value; 
+            recoveryButton.disabled = true; 
+            recoveryButton.textContent = 'Enviando email...';
+            
+            try {
+                // Llama a Firebase con el email
+                await sendPasswordResetEmail(auth, email);
+                showAuthError("¡Email de recuperación enviado! Revisa tu bandeja de entrada. Si no lo ves, revisa el spam.", true); 
+            } catch (error) {
+                console.error("Password Recovery Error:", error);
+                showAuthError(error.code); 
+            } finally {
+                recoveryButton.disabled = false;
+                recoveryButton.textContent = 'Reintentar Envío';
+                
+                // Resetea el reCAPTCHA para el próximo intento
+                if (typeof grecaptcha !== 'undefined' && recaptchaWidgetId) { 
+                    grecaptcha.reset(recaptchaWidgetId);
+                }
+            }
+        }
 
-            mainAuthButton.disabled = true;
-            mainAuthButton.textContent = 'Accediendo...';
+        // -----------------------------
+        // F. Lógica de Login
+        // -----------------------------
+
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Si estamos en modo recovery, redirigimos la acción al manejo de recuperación.
+            if (authCard.classList.contains('recovery-mode')) { 
+                window.handlePasswordRecovery(e); 
+                return;
+            }
+            
+            hideAuthError(); 
+            
+            const email = emailInput.value; 
+            const password = document.getElementById('password').value;
+            
+            if (!password) {
+                 showAuthError("Por favor, introduce la contraseña."); 
+                 return;
+            }
+
+            loginButton.disabled = true; 
+            loginButton.textContent = 'Accediendo...';
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 console.error("Auth Error:", error);
-                showAuthError(error.code);
+                showAuthError(error.code); 
             } finally {
-                mainAuthButton.disabled = false;
-                mainAuthButton.textContent = 'Acceder a la Plataforma';
+                loginButton.disabled = false;
+                loginButton.textContent = 'Acceder a la Plataforma';
             }
         });
 
-        // Listener principal del estado de autenticación
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // REDIRECCIÓN CLAVE CORREGIDA: Si el usuario está logueado, vamos a la página principal usando la ruta relativa segura.
-                window.location.href = 'google.com';
+                window.location.href = './mainpage.html';
             }
         });
+        
+        // -----------------------------
+        // G. Inicialización del Fondo (Partículas)
+        // -----------------------------
+
+        const html = document.documentElement;
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        const configParticle = {
+            particleCount: 80, maxRadius: 3, maxSpeed: 0.5, particleColor: '#000000',
+        };
+        let particles = [];
+        let width, height;
+        let mouse = { x: null, y: null, radius: 100 };
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * configParticle.maxRadius + 1;
+                this.vx = (Math.random() - 0.5) * configParticle.maxSpeed;
+                this.vy = (Math.random() - 0.5) * configParticle.maxSpeed;
+            }
+            draw() {
+                ctx.fillStyle = configParticle.particleColor; 
+                const size = this.radius * 2;
+                ctx.fillRect(this.x - this.radius, this.y - this.radius, size, size);
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (this.x + this.radius > width || this.x - this.radius < 0) { this.vx = -this.vx; }
+                if (this.y + this.radius > height || this.y - this.radius < 0) { this.vy = -this.vy; }
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = this.x - mouse.x;
+                    const dy = this.y - mouse.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        const angle = Math.atan2(dy, dx);
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.vx += Math.cos(angle) * force * 0.1;
+                        this.vy += Math.sin(angle) * force * 0.1;
+                        const maxInteractionSpeed = 2;
+                        this.vx = Math.min(Math.max(this.vx, -maxInteractionSpeed), maxInteractionSpeed);
+                        this.vy = Math.min(Math.max(this.vy, -maxInteractionSpeed), maxInteractionSpeed);
+                    }
+                }
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            configParticle.particleCount = width < 768 ? 50 : 80; 
+            for (let i = 0; i < configParticle.particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            if (particles.length === 0 || particles.length !== configParticle.particleCount) {
+                 initParticles();
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+        
+        function animate() {
+            let clearColor = html.classList.contains('dark-theme') ? 'rgba(13, 17, 23, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+            ctx.fillStyle = clearColor;
+            ctx.fillRect(0, 0, width, height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = function() {
+            resizeCanvas(); 
+            animate();
+            setMode('login'); // Asegurar inicio en modo login
+        };
     </script>
 </body>
 </html>
