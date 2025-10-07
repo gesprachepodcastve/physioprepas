@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHYSIOPREPAS</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <!-- Carga de Tailwind CSS para el diseño y responsividad -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes estilo Shonen/Anime: Oswald para texto principal y Permanent Marker para el pop de bienvenida -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* Estilos generales */
+        body {
+            /* Fuente de alto impacto para estética anime */
+            font-family: 'Oswald', sans-serif; 
+            overflow-x: hidden;
+            /* DEFAULt: Dark Mode */
+            background-color: #1a202c; /* Fondo oscuro inicial */
+            color: #ffffff; /* Texto blanco en Dark Mode */
+            transition: background-color 0.5s ease, color 0.5s ease; /* Transición suave para el cambio de tema */
+        }
+        
+        /* Estilos para el Tema Claro (Light Mode) */
+        body.light-mode {
+            background-color: #f0f4f8; /* Fondo claro */
+            color: #1a202c; /* Texto oscuro */
+        }
+        
+        /* Adaptación del Header en Light Mode */
+        .light-mode header {
+            background-color: #ffffff;
+            border-bottom-color: #ccc; /* Borde más suave */
+        }
+        
+        /* Adaptación del Sidebar en Light Mode */
+        .light-mode #sidebar {
+            background-color: #ffffff;
+            color: #1a202c;
+        }
+
+        /* Contenedor del Slideshow para hacerlo Full Width/Height */
+        .slideshow-container {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Efecto de contorno grueso para texto (simula borde de cel-shading) */
+        .text-outline-bright {
+            color: #fef08a; /* Amarillo Brillante Interior */
+            text-shadow: 
+                -2px -2px 0 #000, 
+                2px -2px 0 #000, 
+                -2px 2px 0 #000, 
+                2px 2px 0 #000;
+        }
+        /* El contorno se desactiva en Light Mode para mejor legibilidad */
+        .light-mode .text-outline-bright {
+            color: #1a202c;
+            text-shadow: none;
+        }
+        
+        /* ------------------ PANTALLA DE CARGA (MODIFICADA: ESTILO ESPN) ------------------ */
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff; /* FONDO BLANCO A PETICIÓN */
+            color: #1a202c; 
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Animación de Carga estilo ESPN (Entrada de la Noticia) */
+        @keyframes espn-load-in {
+            0% { transform: translateY(50px) scaleY(0.5); opacity: 0; }
+            50% { transform: translateY(-10px) scaleY(1.05); opacity: 1; }
+            100% { transform: translateY(0) scaleY(1); opacity: 1; }
+        }
+
+        /* Logo ahora más grande y con animación deportiva */
+        .logo-placeholder {
+            animation: espn-load-in 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Curva de velocidad dramática */
+            border: 5px solid #000; /* Borde negro de alto contraste */
+            /* TAMAÑO MÁS GRANDE */
+            width: 8rem; /* 128px */
+            height: 8rem; /* 128px */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(0) scaleY(1); /* Reset para la animación JS */
+        }
+
+        /* Animación de la Barra de Progreso - Estilo Ticker/Scoreboard (Banda Roja) */
+        @keyframes load-progress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        .progress-bar-container {
+            width: 100%;
+            max-width: 400px;
+            /* La barra de fondo es negra para alto contraste */
+            background-color: #000; 
+            height: 12px;
+            overflow: hidden;
+            border-radius: 0; /* Sin bordes redondeados para un look más agresivo */
+            /* Agrega un borde rojo icónico de ESPN */
+            border: 2px solid #ff0000; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .progress-bar {
+            animation: load-progress 2s forwards linear; 
+            height: 100%; 
+            background-color: #ff0000; /* Rojo principal de ESPN */
+            /* Efecto de degradado sutil para darle profundidad */
+            background-image: linear-gradient(90deg, #cc0000, #ff0000, #cc0000);
+            transition: width 0.1s linear;
+        }
+        
+        /* Animación de Bienvenida - Texto grande, audaz y con un wipe effect */
+        @keyframes espn-text-wipe {
+            0% { transform: translateX(-100%); opacity: 0; }
+            20% { transform: translateX(-100%); opacity: 1; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .animate-espn-wipe {
+            font-family: 'Oswald', sans-serif;
+            font-size: 3.5rem; /* Tamaño adecuado para el texto deportivo */
+            font-weight: 900;
+            color: #000; /* Negro sobre blanco */
+            padding: 0 10px;
+            overflow: hidden;
+        }
+        .anime-text {
+            /* El texto interior es el que se anima */
+            display: inline-block;
+            animation: espn-text-wipe 0.6s ease-out forwards;
+            
+            /* Sombra de texto sutil para hacerlo POP */
+            text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.7), -2px -2px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        /* ------------------ MENÚ LATERAL (Flipbook) ------------------ */
+
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 300px;
+            z-index: 50;
+            background-color: #fff;
+            /* Borde grueso estilo manga y sombra fuerte */
+            border-right: 5px solid #000; 
+            box-shadow: 15px 0 50px rgba(0, 0, 0, 0.5); 
+            padding: 2rem;
+            
+            /* Posición inicial y animación Flipbook */
+            transform: translateX(-100%) rotateY(90deg); 
+            transform-origin: left;
+            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            pointer-events: none; 
+        }
+        
+        #sidebar.active {
+            transform: translateX(0) rotateY(0deg);
+            pointer-events: auto; 
+        }
+
+        /* ------------------ EFECTO BLUR (Filtro) ------------------ */
+
+        #main-content {
+            transition: filter 0.5s ease;
+        }
+
+        #main-content.blur-active {
+            filter: blur(8px);
+            pointer-events: none; 
+            user-select: none;
+        }
+        
+        /* Overlay para cerrar el menú haciendo click fuera (FIX: Ahora cubre la pantalla y es interactivo) */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 49; /* Detrás del sidebar (50) */
+            background-color: rgba(0, 0, 0, 0.4);
+            opacity: 0; /* Inicia oculto */
+            visibility: hidden; /* No interactuable cuando está oculto */
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        #overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* ------------------ INTERACTIVIDAD DE BOTONES ------------------ */
+
+        /* Estilo general de botones con efecto 3D simple */
+        .theme-button, #menu-toggle, #close-sidebar {
+            transition: all 0.15s ease; 
+            box-shadow: 3px 3px 0 #000;
+        }
+        /* Efecto de presionado */
+        .theme-button:active, #menu-toggle:active, #close-sidebar:active {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+
+        /* Estilo para los botones del slideshow */
+        .slide-button {
+            border: 2px solid #000;
+            background: #ef4444; /* Botones rojos */
+            /* Efecto de sombra desplazada */
+            box-shadow: 3px 3px 0 #000; 
+            transition: all 0.15s ease; /* Transición rápida para el efecto "presionado" */
+        }
+        .slide-button:hover {
+            background: #f97316; /* Naranja al hacer hover */
+            box-shadow: 5px 5px 0 #000;
+        }
+        .slide-button:active {
+            /* Efecto de presionado dramático: se mueve y la sombra desaparece */
+            transform: translate(5px, 5px); 
+            box-shadow: none;
+        }
+
+        /* Estilo para el contenido del SLIDE (Panel de Manga) */
+        .slide a {
+            position: relative;
+            z-index: 10;
+        }
+
+        .slide a h2 {
+            font-size: 3.5rem; /* Asegura tamaño grande en todas las vistas */
+            padding: 1rem 2rem;
+            
+            /* Borde de panel de manga negro con sombra de color */
+            border: 4px solid black; 
+            background: rgba(0, 0, 0, 0.75);
+            
+            /* Sombra desplazada vibrante (como si saliera del panel) */
+            box-shadow: 5px 5px 0 #f97316; 
+            line-height: 1.1;
+        }
+
+        /* Estilo para los enlaces del Sidebar */
+        .sidebar-link {
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.1s;
+            border: 2px solid #000; /* Borde de manga */
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+            background-color: #fff;
+            font-weight: 700;
+            display: block; 
+        }
+        .sidebar-link:hover {
+            transform: translateY(-3px); /* Se eleva un poco */
+            background-color: #ffcccc; /* Fondo rojo pastel/rosa claro */
+            box-shadow: 6px 6px 0 #ef4444; /* Sombra roja neón fuerte */
+            color: #1a202c; 
+        }
+        .sidebar-link:active {
+            transform: translateY(0px) translateX(0px);
+            box-shadow: 0 0 0 #000; 
+            background-color: #f97316; 
+            color: white;
+        }
+        /* Adaptación de enlaces del Sidebar para Dark Mode (texto debe ser blanco) */
+        .light-mode .sidebar-link {
+            color: #1a202c;
+        }
+
+        /* ------------------ ESTILOS DE BENTO BOX ------------------ */
+
+        .bento-card {
+            border: 3px solid #000; /* Contorno grueso */
+            box-shadow: 5px 5px 0 #ef4444; /* Sombra desplazada roja (Default Dark Mode) */
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        /* Para el bento-grid de contacto en el footer */
+        .contact-bento-card {
+            padding: 1rem;
+            border: 2px solid #000;
+            box-shadow: 3px 3px 0 #000;
+            transition: all 0.1s ease;
+            background-color: #ffdddd; /* Rojo claro/Rosa Pastel */
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+        }
+        .contact-bento-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 5px 5px 0 #f97316;
+            background-color: #ffc4c4;
+        }
+        .contact-bento-card:active {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+
+        .light-mode .bento-card {
+            box-shadow: 5px 5px 0 #3b82f6; /* Sombra desplazada azul en Light Mode */
+        }
+        .bento-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 8px 8px 0 #f97316; /* Sombra naranja al hacer hover (Dark Mode) */
+        }
+        .light-mode .bento-card:hover {
+            box-shadow: 8px 8px 0 #1d4ed8; /* Sombra azul más oscura al hacer hover (Light Mode) */
+        }
+        .bento-card:active {
+             transform: translate(5px, 5px); 
+             box-shadow: none;
+        }
+        .bento-title {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.5rem;
+            color: #1a202c;
+            line-height: 1.1;
+        }
+        
+        /* ------------------ ESTILOS DEL FOOTER ------------------ */
+
+        footer {
+            /* Estilo por defecto (Light Mode - Footer es blanco) */
+            background-color: #ffffff;
+            color: #1a202c;
+            border-top: 4px solid #000;
+            transition: all 0.5s ease;
+        }
+
+        /* Adaptación del Footer en Dark Mode */
+        body:not(.light-mode) footer {
+            background-color: #2d3748; /* Un gris oscuro para contraste */
+            color: #ffffff;
+            border-top-color: #f97316; /* Borde naranja neón */
+        }
+
+        /* Adaptación del texto dentro del footer para Dark Mode */
+        body:not(.light-mode) footer h3, body:not(.light-mode) footer p, body:not(.light-mode) footer a {
+            color: inherit; /* Hereda el color del body:not(.light-mode) footer */
+        }
+
+        /* Títulos y líneas divisorias del footer */
+        body:not(.light-mode) footer h3 {
+            border-bottom-color: #ef4444; /* Línea divisoria roja */
+        }
+        .team-photo-placeholder {
+            /* Sombra de manga para el placeholder de la foto */
+            box-shadow: 4px 4px 0 #000; 
+            color: #555;
+            transition: all 0.5s ease;
+        }
+        .team-photo-placeholder:hover {
+            transform: translateY(-2px);
+            box-shadow: 5px 5px 0 #f97316;
+            background-color: #ffc4c4;
+        }
+
+        body:not(.light-mode) .team-photo-placeholder {
+            /* Fondo gris oscuro en Dark Mode */
+            background-color: #1a202c; 
+            color: #9ca3af;
+            border-color: #f97316; /* Borde neón en Dark Mode */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ------------------ PANTALLA DE CARGA ------------------ -->
+    <div id="loading-screen">
+        <!-- Logo del Emprendimiento (Placeholder) - TAMAÑO GRANDE ESPN -->
+        <!-- REEMPLAZA ESTA URL CON TU LOGO REAL -->
+        <img src="logo.png" 
+             alt="Logo del Emprendimiento" 
+             class="logo-placeholder rounded-full mb-6">
+        
+        <!-- Barra de Progreso (Banda Roja ESPN) -->
+        <div class="progress-bar-container rounded-sm mb-8">
+            <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+        </div>
+
+        <!-- Mensaje de Bienvenida (Estilo Ticker) -->
+        <div id="welcome-message" class="text-4xl font-extrabold tracking-tight text-center animate-espn-wipe">
+            <!-- El contenido será añadido por JavaScript -->
+        </div>
+    </div>
+    
+    <!-- ------------------ OVERLAY PARA CERRAR EL MENÚ ------------------ -->
+    <div id="overlay"></div>
+
+    <!-- ------------------ CONTENIDO PRINCIPAL (Landing Page) ------------------ -->
+    <div id="main-content" class="min-h-screen">
+        
+        <!-- HEADER Y BOTÓN DE MENÚ (Estilo más contrastante) -->
+        <header class="fixed top-0 left-0 w-full z-30 p-4 flex justify-between items-center bg-white border-b-4 border-black shadow-lg">
+            
+            <!-- Contenedor del Logo y Título -->
+            <div class="flex items-center space-x-3">
+                <!-- LOGO DE NEGOCIO (Placeholder) -->
+                <!-- REEMPLAZA 'https://placehold.co/32x32/1a202c/ffffff?text=L' con la URL de tu logo real -->
+                <img src="logo.png" 
+                     alt="Logo de Negocio" 
+                     class="w-8 h-8 rounded-full border border-black shadow-sm">
+                
+                <h1 class="text-2xl font-black text-gray-800 tracking-wider">PREPAS DE FISIOLOGÍA</h1>
+            </div>
+            
+            <!-- Contenedor de Botones de Control -->
+            <div class="flex items-center space-x-3">
+                
+                <!-- Theme Toggle Button (Nuevo) -->
+                <button id="theme-toggle" class="p-2 rounded-md bg-gray-200 hover:bg-gray-300 transition duration-300 border-2 border-black shadow-md theme-button">
+                    <!-- Icono inicial (Será actualizado por JS) -->
+                    <i id="theme-icon" class="fas fa-sun text-xl text-yellow-600"></i>
+                </button>
+                
+                <!-- Botón del Menú Desplegable (Existente) -->
+                <button id="menu-toggle" class="p-2 rounded-md bg-red-500 hover:bg-red-700 transition duration-300 border-2 border-black shadow-md">
+                    <i class="fas fa-bars text-xl text-white"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- SLIDESHOW PRINCIPAL // BENEFICIOS EXCLUSIVOS POR FORMAR PARTE DE PHYSIOPREPAS -->
+        <section class="slideshow-container relative overflow-hidden">
+            <div id="slides-wrapper" class="h-full flex transition-transform duration-700 ease-in-out">
+                
+                <!-- Slide 1: osmosis -->
+                <div class="slide flex-shrink-0 w-full h-full bg-cover bg-center" 
+                     style="background-image: url('https://placehold.co/1920x1080/4f46e5/ffffff?text=OSMOSIS');">
+                    <!-- 3. HIPERVÍNCULO: Reemplaza '#' con la URL de destino al hacer clic en el slide. -->
+                    <a href="https://www.osmosis.org/invite/kV6vdmU?fbclid=PAZXh0bgNhZW0CMTEAAaflhxg3l24DaeiEnlo4mb2wF9vaA35gDa92RyUReJvkgOhuH_0Y7Z90p4xH7A_aem_6r1Sx9DkqiNZcSkBgaW8rw" class="relative z-10 text-white flex flex-col justify-center items-center">
+                        <h2 class="text-white">OSMOSIS</h2>
+                        <p class="text-xl mt-4 text-outline-bright">Recibe hasta 2 semanas gratis de Osmosis | ByElSevier</p>
+                    </a>
+                </div>
+                
+                <!-- Slide 2: newsletter -->
+                <div class="slide flex-shrink-0 w-full h-full bg-cover bg-center" 
+                     style="background-image: url('https://placehold.co/1920x1080/059669/ffffff?text=NEWSLETTER');">
+                    <!-- 3. HIPERVÍNCULO: Reemplaza '#' con la URL de destino al hacer clic en el slide. -->
+                    <a href="https://physioprepasnewsletter.wordpress.com/" class="relative z-10 text-white flex flex-col justify-center items-center">
+                        <h2 class="text-white">Actualiza tu conocimiento con nuestro Newsletter</h2>
+                        <p class="text-xl mt-4 text-outline-bright">Suscribete a PHYSIOPREPAS | Cartas</p>
+                    </a>
+                </div>
+                
+                <!-- Slide 3: youtube -->
+                <div class="slide flex-shrink-0 w-full h-full bg-cover bg-center" 
+                     style="background-image: url('https://placehold.co/1920x1080/f97316/ffffff?text=YOUTUBE');">
+                    <!-- 3. HIPERVÍNCULO: Reemplaza '#' con la URL de destino al hacer clic en el slide. -->
+                    <a href="https://www.youtube.com/@GesprachePodcastVE" class="relative z-10 text-white flex flex-col justify-center items-center">
+                        <h2 class="text-white">Revisa los contenidos de tus prepas con nuestros VideoResumenes</h2>
+                        <p class="text-xl mt-4 text-outline-bright">Suscribete a nuestro canal de YouTube</p>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Botones de Navegación del Slideshow -->
+            <button id="prev-slide" class="slide-button left-4">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button id="next-slide" class="slide-button right-4">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </section>
+
+        <!-- SECCIÓN DE BENTO BOX/PREPAS -->
+        <section class="p-4 md:p-8 max-w-7xl mx-auto mt-8 mb-16">
+            <h2 class="text-4xl font-black mb-6 text-outline-bright">BENTO GRID: Prepas Por Tema 📚</h2>
+            <p class="text-lg mb-8">Está al tanto de las prepas llevadas a cabo durante el año con nuestro Bento Grid.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Tarjeta 1: INTRODUCTORIA -->
+                <a href="https://gesprachepodcastve.github.io/PHYSIO-Intro-WaterPropertiesSimulator1/" target="_blank" class="bento-card p-6 bg-yellow-100 hover:bg-yellow-200">
+                    <div class="flex-grow">
+                        <p class="text-sm font-bold text-red-600 mb-2">PREPA 0: INTRODUCTORIA</p>
+                        <h3 class="bento-title mb-3">Propiedades Fisico-Quimicas del agua + Liquidos corporales P.1</h3>
+                        <p class="text-gray-600 text-sm">Incluye acceso a </p>
+                    </div>
+                    <i class="fas fa-dumbbell text-4xl mt-4 text-red-500 self-end"></i>
+                </a>
+            </div>
+        </section>
+
+        <!-- FOOTER: Datos de Contacto y Espacio para Foto del Equipo -->
+        <footer class="p-8 md:p-12 mt-16 shadow-inner-xl">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-start">
+
+                <!-- Columna Izquierda (Equipo): Solo visible en desktop (lg:) -->
+                <!-- En móvil (sm: y md:), esta columna se oculta. -->
+                <div class="hidden lg:block space-y-4">
+                    <h3 class="text-xl font-black border-b-2 border-red-500 pb-1 w-fit">DALE 💛 AL IG DE NUESTRO STAFF!</h3>
+                    <!-- Placeholder de foto: Estilo con borde manga -->
+                    <div class="team-photo-placeholder w-full max-w-sm h-48 bg-gray-200 rounded-lg border-4 border-black overflow-hidden shadow-lg flex items-center justify-center text-center p-4 text-sm italic">
+                        <a href="https://www.instagram.com/zahermachado_research/"><img src = "footer.png" alt="Foto del equipo"/></a>
+                    </div>
+                </div>
+
+                <!-- Columna Principal de Contacto (Visible en todas las vistas) -->
+                <!-- En desktop (lg:), esta es la columna derecha. -->
+                <div class="space-y-4">
+                    <h3 class="text-xl font-black border-b-2 border-red-500 pb-1 w-fit mb-4">CONTACTO - GESPRACHE</h3>
+                    
+                    <!-- BENTO GRID DE CONTACTO (Solo visible en Móvil/Tablet: <lg) -->
+                    <!-- Ocultamos el bloque de enlaces simple y mostramos las grids en móvil -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:hidden">
+                        
+                        <!-- Instagram Bento Card -->
+                        <a href="https://www.instagram.com/gesprache_vzla" target="_blank" class="contact-bento-card justify-center">
+                            <i class="fab fa-instagram mr-2 text-pink-500 text-xl"></i>
+                            <span class="font-bold text-sm">Instagram</span>
+                        </a>
+
+                        <!-- WhatsApp Bento Card -->
+                        <a href="https://wa.me/+584127762812" target="_blank" class="contact-bento-card justify-center">
+                            <i class="fab fa-whatsapp mr-2 text-green-500 text-xl"></i>
+                            <span class="font-bold text-sm">WhatsApp</span>
+                        </a>
+
+                        <!-- Email Bento Card -->
+                        <a href="mailto:gesprachepodcastve@gmail.com" target="_blank" class="contact-bento-card justify-center">
+                            <i class="fas fa-envelope mr-2 text-blue-500 text-xl"></i>
+                            <span class="font-bold text-sm">Email</span>
+                        </a>
+                    </div>
+                    
+                    <!-- ENLACES DE CONTACTO TRADICIONALES (Solo visible en Desktop: lg:) -->
+                    <!-- Mantiene el formato vertical simple para la columna derecha de desktop -->
+                    <div class="space-y-3 font-semibold text-base hidden lg:block">
+                        <!-- Instagram -->
+                        <a href="https://www.instagram.com/gesprache_vzla" target="_blank" class="flex items-center hover:text-pink-600 transition duration-300">
+                            <i class="fab fa-instagram mr-3 text-pink-500 text-xl"></i>
+                            <span>IG: @gesprache_vzla</span>
+                        </a>
+
+                        <!-- WhatsApp -->
+                        <a href="https://wa.me/+584127762812" target="_blank" class="flex items-center hover:text-green-600 transition duration-300">
+                            <i class="fab fa-whatsapp mr-3 text-green-500 text-xl"></i>
+                            <span>WS: +58 412 776 2812</span>
+                        </a>
+
+                        <!-- Email -->
+                        <a href="mailto:gesprachepodcastve@gmail.com" target="_blank" class="flex items-center hover:text-blue-600 transition duration-300">
+                            <i class="fas fa-envelope mr-3 text-blue-500 text-xl"></i>
+                            <span>Email: gesprachepodcastve@gmail.com</span>
+                        </a>
+                    </div>
+                    
+                    <p class="pt-4 text-xs text-gray-500">&copy; PHYSIOPREPAS | Una iniciativa de <a href = "https://www.instagram.com/gesprache_vzla">GESPRACHE PODCAST VE</a>.</p>
+                </div>
+
+            </div>
+        </footer>
+    </div>
+    
+    <!-- ------------------ MENÚ LATERAL DESPLEGABLE ------------------ -->
+    <aside id="sidebar">
+        <!-- Botón de Cierre (Nuevo) -->
+        <button id="close-sidebar" class="absolute top-4 right-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full border-2 border-black theme-button">
+            <i class="fas fa-times text-lg"></i>
+        </button>
+        
+        <h2 class="text-2xl font-black mb-8 text-gray-800 tracking-wider border-b-4 border-red-500 pb-2">PANEL DE CONTROL</h2>
+        <nav class="space-y-4">
+            <!-- NOTA: Se aplica la clase 'sidebar-link' para los nuevos efectos interactivos -->
+            <a href="https://chat.whatsapp.com/L1En2v5yRg98u6WRWLggnj?mode=ems_copy_t&fbclid=PAZXh0bgNhZW0CMTEAAafCn9QkeqQ5llN_P4h2EUNPNLdt8PMefifDFydSD4VLpVoNa2wDCOvstM8Iow_aem_0ot20oGFwBg5KBGJDiN4Xw" class="sidebar-link p-3 rounded-lg text-gray-700">
+                <i class="fas fa-home mr-3 text-blue-600"></i> Grupo de WhatsApp | PhysioPrepas
+            </a>
+            <hr class="my-4 border-red-300">
+            <p class="text-xs font-semibold uppercase text-gray-500 mb-2 mt-6">NUESTROS SIMULADORES</p>
+            <a href="https://gesprachepodcastve.github.io/PHYSIO-Intro-WaterPropertiesSimulator1/" class="sidebar-link p-3 rounded-lg text-gray-700">
+                <i class="fas fa-bone mr-3 text-green-600"></i> Liquidos corporales
+            </a>
+        </nav>
+    </aside>
+
+    <script>
+        const loadingScreen = document.getElementById('loading-screen');
+        const progressBar = document.getElementById('progress-bar');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const menuToggle = document.getElementById('menu-toggle');
+        const overlay = document.getElementById('overlay');
+        const slidesWrapper = document.getElementById('slides-wrapper');
+        const prevButton = document.getElementById('prev-slide');
+        const nextButton = document.getElementById('next-slide');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        
+        // Elemento nuevo
+        const closeSidebarButton = document.getElementById('close-sidebar');
+        
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        // --- LÓGICA DEL TEMA OSCURO/CLARO ---
+        
+        function setTheme(mode) {
+            // Guarda la preferencia en localStorage
+            localStorage.setItem('theme', mode);
+            
+            if (mode === 'dark') {
+                document.body.classList.remove('light-mode');
+                
+                // Icono: Sol (para sugerir cambiar a modo claro)
+                themeIcon.classList.remove('fa-moon', 'text-gray-800');
+                themeIcon.classList.add('fa-sun', 'text-yellow-600');
+                
+                // Botón: Fondo oscuro suave
+                themeToggle.classList.remove('bg-yellow-200', 'hover:bg-yellow-300');
+                themeToggle.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            } else {
+                document.body.classList.add('light-mode');
+                
+                // Icono: Luna (para sugerir cambiar a modo oscuro)
+                themeIcon.classList.remove('fa-sun', 'text-yellow-600');
+                themeIcon.classList.add('fa-moon', 'text-gray-800');
+
+                // Botón: Fondo amarillo suave
+                themeToggle.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+                themeToggle.classList.add('bg-yellow-200', 'hover:bg-yellow-300');
+            }
+        }
+        
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'dark'; // Dark como valor por defecto
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // --- LÓGICA DEL SLIDESHOW ---
+        
+        function updateSlideshow() {
+            // Calcula el desplazamiento horizontal para mostrar la diapositiva actual
+            const offset = -currentSlide * 100;
+            slidesWrapper.style.transform = `translateX(${offset}%)`;
+        }
+        
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlideshow();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlideshow();
+        }
+
+        // Navegación con botones
+        nextButton.addEventListener('click', nextSlide);
+        prevButton.addEventListener('click', prevSlide);
+        
+        // Auto-avance (opcional, ajusta el tiempo)
+        setInterval(nextSlide, 5000); 
+
+        // --- LÓGICA DE CARGA Y BIENVENIDA ---
+        
+        function showWelcome(language) {
+            let message = '';
+            switch (language) {
+                case 'en':
+                    message = 'WELCOME!';
+                    break;
+                case 'jp':
+                    message = 'ようこそ!';
+                    break;
+                case 'de':
+                    message = 'WILLKOMMEN!';
+                    break;
+                default:
+                    message = '¡BIENVENIDO!';
+            }
+            // Envuelve el mensaje en el span que aplica la animación ESPN
+            welcomeMessage.innerHTML = `<span class="anime-text">${message}</span>`;
+        }
+
+        function startLoadingAnimation() {
+            // Simula la carga de 0% a 100% en 2 segundos
+            progressBar.style.animation = 'load-progress 2s forwards linear';
+
+            setTimeout(() => {
+                // Paso 1: Muestra el mensaje de bienvenida multilingüe con animación
+                const messages = ['en', 'jp', 'de'];
+                let index = 0;
+                
+                // Función para mostrar los mensajes secuencialmente con el efecto ESPN
+                const displayNextMessage = () => {
+                    if (index < messages.length) {
+                        // Resetea la animación antes de aplicarla de nuevo
+                        welcomeMessage.querySelector('.anime-text').style.animation = 'none'; 
+                        void welcomeMessage.offsetWidth; // Forzar repaint
+                        showWelcome(messages[index]);
+                        index++;
+                        setTimeout(displayNextMessage, 800); // 0.8s entre mensajes
+                    } else {
+                        // Paso 2: Oculta la pantalla de carga y revela el contenido
+                        setTimeout(() => {
+                            loadingScreen.style.opacity = '0';
+                            // Asegura la eliminación después de la transición
+                            setTimeout(() => loadingScreen.style.display = 'none', 500);
+                            mainContent.style.opacity = '1';
+                        }, 500); 
+                    }
+                };
+                
+                // Inicializa el mensaje de bienvenida para que el querySelector no falle.
+                showWelcome('default');
+                displayNextMessage();
+
+            }, 50); // Pequeño delay de inicio
+        }
+        
+        // --- LÓGICA DEL MENÚ Y BLUR ---
+        
+        function toggleMenu() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            // Aplicar/remover efecto blur al contenido principal
+            if (sidebar.classList.contains('active')) {
+                mainContent.classList.add('blur-active');
+            } else {
+                // Pequeño retardo para que el blur se vea mejor
+                setTimeout(() => mainContent.classList.remove('blur-active'), 300);
+            }
+        }
+        
+        menuToggle.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu); // Cierra al hacer clic en el overlay (FIXED con CSS)
+        closeSidebarButton.addEventListener('click', toggleMenu); // Cierra con el nuevo botón
+
+        // --- INICIO DE LA APLICACIÓN ---
+        
+        window.onload = function() {
+            // Aplica el tema guardado o el modo oscuro por defecto al cargar.
+            const savedTheme = localStorage.getItem('theme');
+            setTheme(savedTheme || 'dark');
+            
+            // Ocultar el contenido principal hasta que cargue
+            mainContent.style.opacity = '0';
+            startLoadingAnimation();
+            updateSlideshow();
+        };
+
+    </script>
+</body>
+</html>
