@@ -7,8 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- CARGA DE GOOGLE RECAPTCHA V2 (Invisible) -->
-    <!-- Usamos la API V2 estándar que funciona directamente con la autenticación de Firebase
-         y la clave proporcionada (6LcSTeArAAAAAB_pU20AGjGk36aI07vq5dU3eBf7). -->
     <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
 
     <style>
@@ -86,7 +84,6 @@
     <canvas id="particles-canvas"></canvas>
 
     <div id="auth-screen" class="relative z-10 flex justify-center items-center w-full"> 
-        <!-- El auth-card ahora tiene una clase dinámica: login-mode o recovery-mode -->
         <div id="auth-card" class="auth-card login-mode">
             <h2 class="text-3xl font-bold mb-6 text-center text-gray-800 dark-theme:text-gray-100 transition-colors duration-300">
                 Acceso de Estudiantes
@@ -156,8 +153,7 @@
         
         // reCAPTCHA globals
         let recaptchaWidgetId; 
-        // 🚨 CLAVE RECAPTCHA PROPORCIONADA POR EL USUARIO 🚨
-        const RECAPTCHA_SITE_KEY = '6LcSTeArAAAAAB_pU20AGjGk36aI07vq5dU3eBf7';
+        const RECAPTCHA_SITE_KEY = '6LcSTeArAAAAAB_pU20AGjGk36aI07vq5dU3eBf7'; // Clave de reCAPTCHA del usuario
 
         const firebaseErrorMessages = {
             'auth/invalid-credential': 'Credenciales no válidas. Verifica tu email y contraseña.',
@@ -198,7 +194,6 @@
             } else {
                 authCard.classList.remove('recovery-mode');
                 authCard.classList.add('login-mode');
-                // Al volver al login, restauramos el mensaje
                 loginButton.textContent = 'Acceder a la Plataforma'; 
             }
         }
@@ -207,7 +202,6 @@
         window.handlePasswordRecovery = function(e) {
             e.preventDefault();
             
-            // Si el evento viene del botón en modo recovery, procederemos.
             if (authCard.classList.contains('recovery-mode')) {
                 hideAuthError();
 
@@ -219,13 +213,11 @@
                 
                 if (typeof grecaptcha !== 'undefined' && recaptchaWidgetId) {
                     recoveryButton.textContent = 'Verificando seguridad...';
-                    // Esto inicia el Invisible reCAPTCHA, que llama a onRecaptchaSuccess
                     grecaptcha.execute(recaptchaWidgetId); 
                 } else {
                      showAuthError("El servicio de seguridad (reCAPTCHA) no se cargó correctamente.");
                 }
             } else {
-                // Si el clic viene del enlace en modo login, solo cambiamos el modo.
                 setMode('recovery');
             }
         }
@@ -263,16 +255,8 @@
         const app = initializeApp(MY_FIREBASE_CONFIG);
         const auth = getAuth(app);
 
-        // -----------------------------
-        // E. Lógica de Recuperación y reCAPTCHA
-        // -----------------------------
-        
-        /**
-         * 1. FUNCIÓN DE CALLBACK reCAPTCHA: Se llama al verificar el usuario.
-         * Debe ser global para el script de reCAPTCHA.
-         */
+        // Lógica de Recuperación y reCAPTCHA
         window.onRecaptchaSuccess = async function(token) {
-            // Las variables DOM y showAuthError son globales, así que las podemos usar aquí.
             hideAuthError(); 
             
             const email = emailInput.value; 
@@ -280,7 +264,6 @@
             recoveryButton.textContent = 'Enviando email...';
             
             try {
-                // Llama a Firebase con el email
                 await sendPasswordResetEmail(auth, email);
                 showAuthError("¡Email de recuperación enviado! Revisa tu bandeja de entrada. Si no lo ves, revisa el spam.", true); 
             } catch (error) {
@@ -290,21 +273,16 @@
                 recoveryButton.disabled = false;
                 recoveryButton.textContent = 'Reintentar Envío';
                 
-                // Resetea el reCAPTCHA para el próximo intento
                 if (typeof grecaptcha !== 'undefined' && recaptchaWidgetId) { 
                     grecaptcha.reset(recaptchaWidgetId);
                 }
             }
         }
 
-        // -----------------------------
-        // F. Lógica de Login
-        // -----------------------------
-
+        // Lógica de Login
         document.getElementById('auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Si estamos en modo recovery, redirigimos la acción al manejo de recuperación.
             if (authCard.classList.contains('recovery-mode')) { 
                 window.handlePasswordRecovery(e); 
                 return;
@@ -334,16 +312,14 @@
             }
         });
 
+        // REDIRECCIÓN CLAVE: Ahora redirige a 'landing.html'
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                window.location.href = './mainpage.html';
+                window.location.href = './landing.html'; 
             }
         });
         
-        // -----------------------------
-        // G. Inicialización del Fondo (Partículas)
-        // -----------------------------
-
+        // Inicialización del Fondo (Partículas)
         const html = document.documentElement;
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
@@ -363,7 +339,8 @@
                 this.vy = (Math.random() - 0.5) * configParticle.maxSpeed;
             }
             draw() {
-                ctx.fillStyle = configParticle.particleColor; 
+                // Alternar color de las partículas basado en el tema
+                ctx.fillStyle = html.classList.contains('dark-theme') ? '#FFFFFF' : '#000000'; 
                 const size = this.radius * 2;
                 ctx.fillRect(this.x - this.radius, this.y - this.radius, size, size);
             }
@@ -425,7 +402,7 @@
         window.onload = function() {
             resizeCanvas(); 
             animate();
-            setMode('login'); // Asegurar inicio en modo login
+            setMode('login'); 
         };
     </script>
 </body>
