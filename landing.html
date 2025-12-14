@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PHYSIOPREPAS</title>
     <link rel="icon" type="image/png" href="/favicon.png">
-    <!-- Carga de Tailwind CSS para el diseño y responsividad -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fuentes estilo Shonen/Anime: Oswald para texto principal y Permanent Marker para el pop de bienvenida -->
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght=700&family=Permanent+Marker&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
@@ -142,7 +140,8 @@
         .anime-text {
             /* El texto interior es el que se anima */
             display: inline-block;
-            animation: espn-text-wipe 0.6s ease-out forwards;
+            /* La animación inicial se aplica aquí, pero se reinicia con JS */
+            /* animation: espn-text-wipe 0.6s ease-out forwards; */ 
             
             /* Sombra de texto sutil para hacerlo POP */
             text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.7), -2px -2px 0 rgba(255, 255, 255, 0.7);
@@ -384,38 +383,26 @@
 </head>
 <body>
 
-    <!-- ------------------ PANTALLA DE CARGA ------------------ -->
     <div id="loading-screen">
-        <!-- Logo del Emprendimiento (Placeholder) - TAMAÑO GRANDE ESPN -->
-        <!-- REEMPLAZA ESTA URL CON TU LOGO REAL -->
         <img src="logo.png" 
              alt="Logo del Emprendimiento" 
              class="logo-placeholder rounded-full mb-6">
         
-        <!-- Barra de Progreso (Banda Roja ESPN) -->
         <div class="progress-bar-container rounded-sm mb-8">
             <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
         </div>
 
-        <!-- Mensaje de Bienvenida (Estilo Ticker) -->
         <div id="welcome-message" class="text-4xl font-extrabold tracking-tight text-center animate-espn-wipe">
-            <!-- El contenido será añadido por JavaScript -->
-        </div>
+            </div>
     </div>
     
-    <!-- ------------------ OVERLAY PARA CERRAR EL MENÚ ------------------ -->
     <div id="overlay"></div>
 
-    <!-- ------------------ CONTENIDO PRINCIPAL (Landing Page) ------------------ -->
     <div id="main-content" class="min-h-screen">
         
-        <!-- HEADER Y BOTÓN DE MENÚ (Estilo más contrastante) -->
         <header class="fixed top-0 left-0 w-full z-30 p-4 flex justify-between items-center bg-white border-b-4 border-black shadow-lg">
             
-            <!-- Contenedor del Logo y Título -->
             <div class="flex items-center space-x-3">
-                <!-- LOGO DE NEGOCIO (Placeholder) -->
-                <!-- REEMPLAZA 'https://placehold.co/32x32/1a202c/ffffff?text=L' con la URL de tu logo real -->
                 <img src="logo.png" 
                      alt="Logo de Negocio" 
                      class="w-8 h-8 rounded-full border border-black shadow-sm">
@@ -423,50 +410,39 @@
                 <h1 class="text-2xl font-black text-gray-800 tracking-wider">PREPAS DE FISIOLOGÍA</h1>
             </div>
             
-            <!-- Contenedor de Botones de Control -->
             <div class="flex items-center space-x-3">
                 
-                <!-- Theme Toggle Button (Nuevo) -->
                 <button id="theme-toggle" class="p-2 rounded-md bg-gray-200 hover:bg-gray-300 transition duration-300 border-2 border-black shadow-md theme-button">
-                    <!-- Icono inicial (Será actualizado por JS) -->
                     <i id="theme-icon" class="fas fa-sun text-xl text-yellow-600"></i>
                 </button>
                 
-                <!-- Botón del Menú Desplegable (Existente) -->
                 <button id="menu-toggle" class="p-2 rounded-md bg-red-500 hover:bg-red-700 transition duration-300 border-2 border-black shadow-md">
                     <i class="fas fa-bars text-xl text-white"></i>
                 </button>
             </div>
         </header>
 
-        <!-- SLIDESHOW PRINCIPAL // BENEFICIOS EXCLUSIVOS POR FORMAR PARTE DE PHYSIOPREPAS -->
         <section class="slideshow-container relative overflow-hidden">
             <div id="slides-wrapper" class="h-full flex transition-transform duration-700 ease-in-out">
                 
-                <!-- Slide 1: osmosis -->
                 <div class="slide flex-shrink-0 w-full h-full bg-cover bg-center" 
                      style="background-image: url('https://placehold.co/1920x1080/4f46e5/ffffff?text=OSMOSIS');">
-                    <!-- 3. HIPERVÍNCULO: Reemplaza '#' con la URL de destino al hacer clic en el slide. -->
                     <a href="https://www.osmosis.org/invite/kV6vdmU?fbclid=PAZXh0bgNhZW0CMTEAAaflhxg3l24DaeiEnlo4mb2wF9vaA35gDa92RyUReJvkgOhuH_0Y7Z90p4xH7A_aem_6r1Sx9DkqiNZcSkBgaW8rw" class="relative z-10 text-white flex flex-col justify-center items-center">
                         <h2 class="text-white">OSMOSIS</h2>
                         <p class="text-xl mt-4 text-outline-bright">Recibe hasta 2 semanas gratis de Osmosis | ByElSevier</p>
                     </a>
                 </div>
                 
-                <!-- Slide 2: newsletter -->
                 <div class="slide flex-shrink-0 w-full h-full bg-cover bg-center" 
                      style="background-image: url('https://placehold.co/1920x1080/059669/ffffff?text=NEWSLETTER');">
-                    <!-- 3. HIPERVÍNCULO: Reemplaza '#' con la URL de destino al hacer clic en el slide. -->
                     <a href="https://physioprepasnewsletter.wordpress.com/" class="relative z-10 text-white flex flex-col justify-center items-center">
                         <h2 class="text-white">Actualiza tu conocimiento con nuestro Newsletter</h2>
                         <p class="text-xl mt-4 text-outline-bright">Suscribete a PHYSIOPREPAS | Cartas</p>
                     </a>
                 </div>
                 
-                <!-- Slide 3: youtube -->
                 <div class="slide flex-shrink-0 w-full h-full bg-cover bg-center" 
                      style="background-image: url('https://placehold.co/1920x1080/f97316/ffffff?text=YOUTUBE');">
-                    <!-- 3. HIPERVÍNCULO: Reemplaza '#' con la URL de destino al hacer clic en el slide. -->
                     <a href="https://www.youtube.com/@GesprachePodcastVE" class="relative z-10 text-white flex flex-col justify-center items-center">
                         <h2 class="text-white">Revisa los contenidos de tus prepas con nuestros VideoResumenes</h2>
                         <p class="text-xl mt-4 text-outline-bright">Suscribete a nuestro canal de YouTube</p>
@@ -474,7 +450,6 @@
                 </div>
             </div>
             
-            <!-- Botones de Navegación del Slideshow -->
             <button id="prev-slide" class="slide-button left-4">
                 <i class="fas fa-chevron-left"></i>
             </button>
@@ -483,14 +458,12 @@
             </button>
         </section>
 
-        <!-- SECCIÓN DE BENTO BOX/PREPAS -->
         <section class="p-4 md:p-8 max-w-7xl mx-auto mt-8 mb-16">
             <h2 class="text-4xl font-black mb-6 text-outline-bright">BENTO GRID: Prepas Por Tema 📚</h2>
             <p class="text-lg mb-8">Está al tanto de las prepas llevadas a cabo durante el año con nuestro Bento Grid.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
-                <!-- Tarjeta 1: INTRODUCTORIA -->
                 <a href="https://gesprachepodcastve.github.io/PHYSIO-Intro-WaterPropertiesSimulator1/" target="_blank" class="bento-card p-6 bg-yellow-100 hover:bg-yellow-200">
                     <div class="flex-grow">
                         <p class="text-sm font-bold text-red-600 mb-2">PREPA 0: INTRODUCTORIA</p>
@@ -502,64 +475,48 @@
             </div>
         </section>
 
-        <!-- FOOTER: Datos de Contacto y Espacio para Foto del Equipo -->
         <footer class="p-8 md:p-12 mt-16 shadow-inner-xl">
             <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-start">
 
-                <!-- Columna Izquierda (Equipo): Solo visible en desktop (lg:) -->
-                <!-- En móvil (sm: y md:), esta columna se oculta. -->
                 <div class="hidden lg:block space-y-4">
                     <h3 class="text-xl font-black border-b-2 border-red-500 pb-1 w-fit">DALE 💛 AL IG DE NUESTRO STAFF!</h3>
-                    <!-- Placeholder de foto: Estilo con borde manga -->
                     <div class="team-photo-placeholder w-full max-w-sm h-48 bg-gray-200 rounded-lg border-4 border-black overflow-hidden shadow-lg flex items-center justify-center text-center p-4 text-sm italic">
                         <a href="https://www.instagram.com/zahermachado_research/"><img src = "footer.png" alt="Foto del equipo"/></a>
                     </div>
                 </div>
 
-                <!-- Columna Principal de Contacto (Visible en todas las vistas) -->
-                <!-- En desktop (lg:), esta es la columna derecha. -->
                 <div class="space-y-4">
                     <h3 class="text-xl font-black border-b-2 border-red-500 pb-1 w-fit mb-4">CONTACTO - GESPRACHE</h3>
                     
-                    <!-- BENTO GRID DE CONTACTO (Solo visible en Móvil/Tablet: <lg) -->
-                    <!-- Ocultamos el bloque de enlaces simple y mostramos las grids en móvil -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:hidden">
                         
-                        <!-- Instagram Bento Card -->
                         <a href="https://www.instagram.com/gesprache_vzla" target="_blank" class="contact-bento-card justify-center">
                             <i class="fab fa-instagram mr-2 text-pink-500 text-xl"></i>
                             <span class="font-bold text-sm">Instagram</span>
                         </a>
 
-                        <!-- WhatsApp Bento Card -->
                         <a href="https://wa.me/+584127762812" target="_blank" class="contact-bento-card justify-center">
                             <i class="fab fa-whatsapp mr-2 text-green-500 text-xl"></i>
                             <span class="font-bold text-sm">WhatsApp</span>
                         </a>
 
-                        <!-- Email Bento Card -->
                         <a href="mailto:gesprachepodcastve@gmail.com" target="_blank" class="contact-bento-card justify-center">
                             <i class="fas fa-envelope mr-2 text-blue-500 text-xl"></i>
                             <span class="font-bold text-sm">Email</span>
                         </a>
                     </div>
                     
-                    <!-- ENLACES DE CONTACTO TRADICIONALES (Solo visible en Desktop: lg:) -->
-                    <!-- Mantiene el formato vertical simple para la columna derecha de desktop -->
                     <div class="space-y-3 font-semibold text-base hidden lg:block">
-                        <!-- Instagram -->
                         <a href="https://www.instagram.com/gesprache_vzla" target="_blank" class="flex items-center hover:text-pink-600 transition duration-300">
                             <i class="fab fa-instagram mr-3 text-pink-500 text-xl"></i>
                             <span>IG: @gesprache_vzla</span>
                         </a>
 
-                        <!-- WhatsApp -->
                         <a href="https://wa.me/+584127762812" target="_blank" class="flex items-center hover:text-green-600 transition duration-300">
                             <i class="fab fa-whatsapp mr-3 text-green-500 text-xl"></i>
                             <span>WS: +58 412 776 2812</span>
                         </a>
 
-                        <!-- Email -->
                         <a href="mailto:gesprachepodcastve@gmail.com" target="_blank" class="flex items-center hover:text-blue-600 transition duration-300">
                             <i class="fas fa-envelope mr-3 text-blue-500 text-xl"></i>
                             <span>Email: gesprachepodcastve@gmail.com</span>
@@ -573,18 +530,15 @@
         </footer>
     </div>
     
-    <!-- ------------------ MENÚ LATERAL DESPLEGABLE ------------------ -->
     <aside id="sidebar">
-        <!-- Botón de Cierre (Nuevo) -->
         <button id="close-sidebar" class="absolute top-4 right-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full border-2 border-black theme-button">
             <i class="fas fa-times text-lg"></i>
         </button>
         
         <h2 class="text-2xl font-black mb-8 text-gray-800 tracking-wider border-b-4 border-red-500 pb-2">PANEL DE CONTROL</h2>
         <nav class="space-y-4">
-            <!-- NOTA: Se aplica la clase 'sidebar-link' para los nuevos efectos interactivos -->
             <a href="https://chat.whatsapp.com/L1En2v5yRg98u6WRWLggnj?mode=ems_copy_t&fbclid=PAZXh0bgNhZW0CMTEAAafCn9QkeqQ5llN_P4h2EUNPNLdt8PMefifDFydSD4VLpVoNa2wDCOvstM8Iow_aem_0ot20oGFwBg5KBGJDiN4Xw" class="sidebar-link p-3 rounded-lg text-gray-700">
-                <i class="fas fa-home mr-3 text-blue-600"></i> Grupo de WhatsApp | PhysioPrepas
+                <i class="fab fa-whatsapp mr-3 text-blue-600"></i> Grupo de WhatsApp | PhysioPrepas
             </a>
             <hr class="my-4 border-red-300">
             <p class="text-xs font-semibold uppercase text-gray-500 mb-2 mt-6">NUESTROS SIMULADORES</p>
@@ -677,61 +631,50 @@
         // Auto-avance (opcional, ajusta el tiempo)
         setInterval(nextSlide, 5000); 
 
-        // --- LÓGICA DE CARGA Y BIENVENIDA ---
+        // --- LÓGICA DE CARGA Y BIENVENIDA (CORREGIDA) ---
         
-        function showWelcome(language) {
-            let message = '';
-            switch (language) {
-                case 'en':
-                    message = 'WELCOME!';
-                    break;
-                case 'jp':
-                    message = 'ようこそ!';
-                    break;
-                case 'de':
-                    message = 'WILLKOMMEN!';
-                    break;
-                default:
-                    message = '¡BIENVENIDO!';
-            }
+        function showWelcome(message) {
             // Envuelve el mensaje en el span que aplica la animación ESPN
             welcomeMessage.innerHTML = `<span class="anime-text">${message}</span>`;
+            // Pequeño truco para forzar el reinicio de la animación (Reflow)
+            void welcomeMessage.offsetWidth; 
+            welcomeMessage.querySelector('.anime-text').style.animation = 'espn-text-wipe 0.6s ease-out forwards';
         }
 
         function startLoadingAnimation() {
-            // Simula la carga de 0% a 100% en 2 segundos
+            const messages = [
+                '¡BIENVENIDO!', // Español (Default)
+                'WELCOME!',     // Inglés
+                'ようこそ!',     // Japonés
+                'WILLKOMMEN!'   // Alemán
+            ];
+            let index = 0;
+            const messageDuration = 1000; // Duración total por mensaje (animación + pausa)
+            
+            // 1. Inicia la animación de la barra de progreso
             progressBar.style.animation = 'load-progress 2s forwards linear';
 
-            setTimeout(() => {
-                // Paso 1: Muestra el mensaje de bienvenida multilingüe con animación
-                const messages = ['en', 'jp', 'de'];
-                let index = 0;
-                
-                // Función para mostrar los mensajes secuencialmente con el efecto ESPN
-                const displayNextMessage = () => {
-                    if (index < messages.length) {
-                        // Resetea la animación antes de aplicarla de nuevo
-                        welcomeMessage.querySelector('.anime-text').style.animation = 'none'; 
-                        void welcomeMessage.offsetWidth; // Forzar repaint
-                        showWelcome(messages[index]);
-                        index++;
-                        setTimeout(displayNextMessage, 800); // 0.8s entre mensajes
-                    } else {
-                        // Paso 2: Oculta la pantalla de carga y revela el contenido
+            const displayNextMessage = () => {
+                if (index < messages.length) {
+                    showWelcome(messages[index]);
+                    index++;
+                    setTimeout(displayNextMessage, messageDuration);
+                } else {
+                    // 2. Oculta la pantalla de carga después de que todos los mensajes se hayan mostrado
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        // Asegura la eliminación después de la transición de opacidad
                         setTimeout(() => {
-                            loadingScreen.style.opacity = '0';
-                            // Asegura la eliminación después de la transición
-                            setTimeout(() => loadingScreen.style.display = 'none', 500);
-                            mainContent.style.opacity = '1';
+                            loadingScreen.style.display = 'none';
+                            // Asegura que el contenido principal sea visible
+                            mainContent.style.opacity = '1'; 
                         }, 500); 
-                    }
-                };
-                
-                // Inicializa el mensaje de bienvenida para que el querySelector no falle.
-                showWelcome('default');
-                displayNextMessage();
-
-            }, 50); // Pequeño delay de inicio
+                    }, 500); // 0.5s de pausa final
+                }
+            };
+            
+            // Inicia la secuencia de mensajes después de un breve retraso
+            setTimeout(displayNextMessage, 50); 
         }
         
         // --- LÓGICA DEL MENÚ Y BLUR ---
