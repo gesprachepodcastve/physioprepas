@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHYSIO-SIM LQ v12.0 | Complete Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Permanent+Marker&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --accent: #dc2626; 
+            --bg-dark: #0f172a; 
+            --neon-blue: #3b82f6; 
+            --panel-shadow: 10px 10px 0 #000; 
+        }
+        body { font-family: 'Oswald', sans-serif; background-color: var(--bg-dark); color: #fff; overflow-x: hidden; }
+        
+        /* UI Manga Style */
+        .manga-panel { 
+            border: 4px solid #000; 
+            box-shadow: var(--panel-shadow); 
+            background: #fff; 
+            color: #1a202c; 
+            position: relative; 
+            transition: transform 0.2s;
+        }
+        
+        .marker-font { font-family: 'Permanent Marker', cursive; }
+        .mono-font { font-family: 'Roboto Mono', monospace; }
+
+        .nav-btn { 
+            border: 3px solid #000; 
+            box-shadow: 4px 4px 0 #000; 
+            transition: 0.1s; 
+            cursor: pointer; 
+            background: #fff; 
+            color: #000; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-btn:hover { background: #f1f5f9; transform: translate(-1px, -1px); box-shadow: 6px 6px 0 #000; }
+        .nav-btn.active { 
+            background-color: var(--accent); 
+            color: #fff; 
+            transform: translate(2px, 2px); 
+            box-shadow: 2px 2px 0 #000; 
+            border-color: #fff;
+        }
+
+        /* Darrow-Yannet Animations */
+        .darrow-container {
+            display: flex; align-items: flex-end; height: 300px;
+            border-bottom: 4px solid #000; border-left: 4px solid #000;
+            padding-left: 2px; position: relative; background: #f8fafc;
+        }
+        .darrow-box {
+            transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 3px solid #000;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; color: white; text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+        }
+
+        /* Biofisica Visuals */
+        .channel-gate { transition: transform 0.3s ease; }
+        
+        /* Partículas del Módulo V */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.4);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 8px; font-weight: bold; color: rgba(0,0,0,0.6);
+            box-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            animation: float 3s infinite ease-in-out alternate;
+        }
+        @keyframes float { 0% { transform: translateY(0px); } 100% { transform: translateY(-5px); } }
+        
+        .filter-chip {
+            cursor: pointer; border: 2px solid black; font-size: 10px; font-weight: 900;
+            padding: 4px 10px; text-transform: uppercase; transition: 0.2s; box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+        .filter-chip.inactive { background-color: #e2e8f0 !important; color: #94a3b8 !important; box-shadow: none; transform: scale(0.95); }
+
+        /* Range Sliders */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: var(--accent); border: 2px solid #000; cursor: pointer; margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #000; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="max-w-7xl mx-auto mb-10 border-b-8 border-white pb-6 flex flex-col md:flex-row justify-between items-end">
+        <div>
+            <h1 class="text-6xl md:text-8xl font-black uppercase tracking-tighter italic leading-none text-white">PHYSIO<span class="text-red-500">SIM</span> v12.0</h1>
+            <p class="marker-font text-2xl md:text-3xl text-yellow-400 mt-2">Plataforma Unificada de Fisiología | Liquidos Corporales</p>
+        </div>
+        <div class="text-right hidden md:block">
+            <div class="bg-red-600 text-white px-3 py-1 font-mono text-[10px] uppercase font-bold inline-block mb-1">
+                Ref: Costanzo / Ganong / Guyton
+            </div>
+            <p class="text-[10px] text-gray-400 font-mono">Build: Full_Integration // Modules: 5</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <nav class="lg:col-span-3 space-y-4">
+            <div class="sticky top-4">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 pl-1">Laboratorios Disponibles</p>
+                <button onclick="showTab(1)" id="btn1" class="nav-btn active w-full p-4 mb-3">
+                    <span>I. Lab GHK & Nernst</span> <i class="fas fa-atom"></i>
+                </button>
+                <button onclick="showTab(2)" id="btn2" class="nav-btn w-full p-4 mb-3">
+                    <span>II. Canales & PA</span> <i class="fas fa-bolt"></i>
+                </button>
+                <button onclick="showTab(3)" id="btn3" class="nav-btn w-full p-4 mb-3">
+                    <span>III. Darrow-Yannet</span> <i class="fas fa-chart-area"></i>
+                </button>
+                <button onclick="showTab(4)" id="btn4" class="nav-btn w-full p-4 mb-3">
+                    <span>IV. Biofísica</span> <i class="fas fa-microscope"></i>
+                </button>
+                <button onclick="showTab(5)" id="btn5" class="nav-btn w-full p-4 mb-3 bg-yellow-50">
+                    <span>V. Dinámica Compart.</span> <i class="fas fa-vials"></i>
+                </button>
+
+                <div class="manga-panel bg-black border-white text-white p-4 mt-8">
+                    <h4 class="text-[10px] font-black uppercase text-yellow-400 mb-2 border-b border-gray-700 pb-1">Monitor Fisiológico</h4>
+                    <div class="space-y-1 font-mono text-[10px]">
+                        <div class="flex justify-between"><span>Osmolaridad:</span> <span class="text-green-400">282 mOsm/L</span></div>
+                        <div class="flex justify-between"><span>Bomba Na/K:</span> <span class="text-blue-400">ACTIVA</span></div>
+                        <div class="flex justify-between"><span>pH LEC:</span> <span class="text-blue-400">7.4</span></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <section class="lg:col-span-9">
+
+            <div id="tab1" class="tab-content">
+                <div class="manga-panel p-8">
+                    <div class="flex justify-between items-start mb-6">
+                        <h2 class="text-4xl font-black uppercase italic border-b-4 border-black">Potencial de Membrana en Reposo</h2>
+                        <span class="bg-black text-white px-2 py-1 text-xs font-bold font-mono">REF: COSTANZO CAP 1</span>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-10">
+                        <div class="space-y-6">
+                            <p class="text-sm font-bold leading-relaxed">
+                                Cálculo del $V_m$ mediante la ecuación de Goldman-Hodgkin-Katz, ponderando permeabilidades.
+                            </p>
+                            
+                            <div class="bg-slate-100 p-5 border-2 border-black">
+                                <h3 class="font-black text-xs uppercase mb-4 text-slate-500">Permeabilidades Relativas (P)</h3>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex justify-between text-[10px] font-black">
+                                            <span>$P_K$ (Fuga)</span><span id="lbl-pk" class="text-purple-600">1.0</span>
+                                        </div>
+                                        <input type="range" id="rng-pk" min="0.1" max="5" step="0.1" value="1" oninput="calcGHK()">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-[10px] font-black">
+                                            <span>$P_{Na}$ (V-Gated)</span><span id="lbl-pna" class="text-yellow-600">0.04</span>
+                                        </div>
+                                        <input type="range" id="rng-pna" min="0" max="2" step="0.01" value="0.04" oninput="calcGHK()">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-[10px] font-black">
+                                            <span>$P_{Cl}$</span><span id="lbl-pcl" class="text-green-600">0.45</span>
+                                        </div>
+                                        <input type="range" id="rng-pcl" min="0" max="2" step="0.05" value="0.45" oninput="calcGHK()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col justify-center">
+                            <div class="bg-black p-8 border-4 border-red-600 text-center relative shadow-[8px_8px_0_rgba(239,68,68,0.3)]">
+                                <span class="text-[9px] text-red-500 font-mono block mb-2 tracking-[0.2em]">CALCULATED VM</span>
+                                <div id="ghk-display" class="text-6xl font-mono text-white font-bold tracking-tighter">-72.4 mV</div>
+                                <div id="ghk-msg" class="text-[10px] mt-2 font-bold text-green-400 uppercase">Estable (Cerca de $E_K$)</div>
+                            </div>
+                            
+                            <div class="mt-6 grid grid-cols-2 gap-3">
+                                <div class="p-2 border border-black bg-purple-50 text-center">
+                                    <div class="text-[9px] font-black uppercase text-purple-800">$E_K$</div>
+                                    <div class="text-xl font-black">-94 mV</div>
+                                </div>
+                                <div class="p-2 border border-black bg-yellow-50 text-center">
+                                    <div class="text-[9px] font-black uppercase text-yellow-800">$E_{Na}$</div>
+                                    <div class="text-xl font-black">+61 mV</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab2" class="tab-content hidden">
+                <div class="manga-panel p-8">
+                    <h2 class="text-4xl font-black uppercase italic border-b-4 border-blue-600 mb-6">Cinética de Canales</h2>
+                    <div class="grid md:grid-cols-12 gap-8">
+                        <div class="md:col-span-4 space-y-4">
+                            <button onclick="fireAP()" class="w-full bg-red-600 text-white font-black py-6 border-b-8 border-black text-2xl uppercase hover:bg-black transition-colors active:border-b-0 active:translate-y-2">
+                                Estimular
+                            </button>
+                            
+                            <div class="bg-white border-2 border-black p-4 space-y-3">
+                                <h4 class="text-xs font-black uppercase border-b border-gray-300 pb-1">Canal Na+ (Compuestas)</h4>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold">m (Activación)</span>
+                                    <div id="gate-m" class="w-16 h-3 border border-black bg-gray-300 relative overflow-hidden"><div class="absolute inset-0 bg-green-500 transition-transform duration-100" style="transform: translateX(-100%)" id="gate-m-bar"></div></div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold">h (Inactivación)</span>
+                                    <div id="gate-h" class="w-16 h-3 border border-black bg-gray-300 relative overflow-hidden"><div class="absolute inset-0 bg-red-500 transition-transform duration-100" style="transform: translateX(0%)" id="gate-h-bar"></div></div>
+                                </div>
+                                <p class="text-[9px] italic text-gray-500 mt-2">La compuerta h es responsable del periodo refractario absoluto.</p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-8">
+                            <div class="bg-black border-4 border-black h-80 relative overflow-hidden">
+                                <canvas id="ap-canvas" class="w-full h-full"></canvas>
+                                <div id="ap-readout" class="absolute top-4 right-4 text-5xl font-mono text-red-500 opacity-50 font-bold">-70</div>
+                                <div id="ap-phase" class="absolute bottom-4 left-4 text-yellow-400 marker-font text-2xl">REPOSO</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab3" class="tab-content hidden">
+                <div class="manga-panel p-8">
+                    <h2 class="text-4xl font-black uppercase italic border-b-4 border-yellow-500 mb-6">Diagramas de Darrow-Yannet</h2>
+                    <div class="grid md:grid-cols-12 gap-8">
+                        <div class="md:col-span-4 space-y-2">
+                            <p class="text-[10px] uppercase font-black text-gray-400 mb-2">Casos Clínicos:</p>
+                            <button onclick="setDarrow('iso-con')" class="nav-btn w-full p-3 text-xs"><span>1. Diarrea</span> <small>(Iso Con)</small></button>
+                            <button onclick="setDarrow('hyper-con')" class="nav-btn w-full p-3 text-xs"><span>2. Sudor</span> <small>(Hyper Con)</small></button>
+                            <button onclick="setDarrow('hypo-exp')" class="nav-btn w-full p-3 text-xs"><span>3. SIADH</span> <small>(Hypo Exp)</small></button>
+                            <button onclick="setDarrow('iso-exp')" class="nav-btn w-full p-3 text-xs"><span>4. Suero</span> <small>(Iso Exp)</small></button>
+                            <div id="dy-info" class="bg-yellow-50 p-3 border-2 border-black text-[10px] mt-4 min-h-[100px] font-medium italic">Seleccione caso...</div>
+                        </div>
+                        <div class="md:col-span-8">
+                            <div class="relative h-[350px] border-4 border-black bg-white p-6">
+                                <div class="darrow-container w-full h-full items-end justify-center px-4 pb-4 bg-slate-50 relative">
+                                    <div class="absolute top-[40%] left-0 w-full border-t-2 border-dashed border-gray-300 z-0"></div>
+                                    <div id="box-lec" class="darrow-box bg-blue-500 z-10" style="width: 33.3%; height: 60%;"><span class="text-xs">LEC</span></div>
+                                    <div class="w-1 bg-black z-20 h-full mx-1 opacity-20 rounded"></div>
+                                    <div id="box-lic" class="darrow-box bg-indigo-700 z-10" style="width: 66.6%; height: 60%;"><span class="text-xs">LIC</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab4" class="tab-content hidden">
+                <div class="manga-panel p-8">
+                    <h2 class="text-4xl font-black uppercase italic border-b-4 border-green-600 mb-6">Laboratorio de Biofísica</h2>
+                    <div class="grid md:grid-cols-2 gap-12">
+                        <div class="space-y-4">
+                            <h3 class="marker-font text-2xl text-red-600">Ley de Fick</h3>
+                            <div class="bg-red-50 p-5 border-2 border-black">
+                                <label class="text-[10px] font-black uppercase">Grosor ($\Delta x$)</label>
+                                <input type="range" id="fick-slider" min="1" max="100" value="5" oninput="updateFick()">
+                                <div class="h-32 bg-white border-2 border-dashed border-gray-400 mt-4 relative flex items-center justify-center overflow-hidden">
+                                    <div id="fick-mem" class="h-full bg-slate-800 transition-all duration-200 border-x-2 border-black" style="width: 5px;"></div>
+                                    <div id="fick-arrow" class="absolute text-red-500 text-4xl transition-all duration-200"><i class="fas fa-long-arrow-alt-right"></i></div>
+                                </div>
+                                <div id="fick-status" class="text-center text-xs font-black uppercase mt-2">Difusión Normal</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="marker-font text-2xl text-blue-600">Fuerzas de Starling</h3>
+                            <div class="bg-blue-50 p-5 border-2 border-black">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="text-[9px] font-black uppercase">Pc</label><input type="number" id="pc-in" value="30" class="w-full border-2 border-black p-1 text-center" onchange="updateStarling()"></div>
+                                    <div><label class="text-[9px] font-black uppercase">$\pi_c$</label><input type="number" id="pi-in" value="28" class="w-full border-2 border-black p-1 text-center" onchange="updateStarling()"></div>
+                                </div>
+                                <div class="relative h-24 mt-4 bg-white border-2 border-black flex items-center justify-center">
+                                    <div id="starling-arrow" class="text-4xl transition-transform duration-300"><i class="fas fa-arrow-down"></i></div>
+                                </div>
+                                <div id="starling-res" class="mt-2 p-2 bg-black text-white text-center font-black text-xs uppercase">Filtración: +2 mmHg</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab5" class="tab-content hidden">
+                <div class="manga-panel p-6">
+                    <div class="flex justify-between items-start mb-6">
+                        <h2 class="text-4xl font-black uppercase italic border-b-4 border-black">Visualizador Molecular</h2>
+                        <span class="bg-black text-white px-2 py-1 text-xs font-bold uppercase">Guyton & Hall</span>
+                    </div>
+
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[10px] font-black uppercase text-slate-500 mb-2">Filtro de Iones:</p>
+                            <div class="flex flex-wrap gap-2 mb-4" id="comp-filter-container"></div>
+                            
+                            <div class="overflow-hidden border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-black text-white uppercase">
+                                        <tr><th class="p-3">Ion</th><th class="p-3 text-center">LEC</th><th class="p-3 text-center">LIC</th></tr>
+                                    </thead>
+                                    <tbody id="comp-table-body" class="font-bold bg-white"></tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4 p-3 bg-blue-50 text-[11px] leading-tight border-l-4 border-blue-600 italic">
+                                <strong>Equilibrio Gibbs-Donnan:</strong> El exceso de proteínas negativas en el LIC atrae cationes permeables (K+) y repele aniones (Cl-), creando gradientes desiguales.
+                            </div>
+                        </div>
+
+                        <div class="relative h-[500px] border-4 border-black bg-slate-50 flex overflow-hidden">
+                            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                            
+                            <div class="w-1/2 relative border-r-4 border-black border-dashed flex flex-col items-center p-2">
+                                <span class="marker-font text-4xl opacity-10 absolute top-10 pointer-events-none">LEC</span>
+                                <div id="comp-lec-viz" class="relative w-full h-full"></div>
+                            </div>
+                            
+                            <div class="w-1/2 relative flex flex-col items-center p-2 bg-blue-50/50">
+                                <span class="marker-font text-4xl opacity-10 absolute top-10 pointer-events-none">LIC</span>
+                                <div id="comp-lic-viz" class="relative w-full h-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // --- DATA ---
+        const ionData = [
+            { id: 'na', name: 'Na+', lec: 142, lic: 14, color: '#facc15', active: true },
+            { id: 'k', name: 'K+', lec: 4, lic: 140, color: '#a855f7', active: true },
+            { id: 'cl', name: 'Cl-', lec: 103, lic: 4, color: '#22c55e', active: true },
+            { id: 'pr', name: 'Proteínas', lec: 2, lic: 16, color: '#e11d48', active: true },
+            { id: 'ca', name: 'Ca++', lec: 2.4, lic: 0.0001, color: '#3b82f6', active: false },
+            { id: 'hco3', name: 'HCO3-', lec: 28, lic: 10, color: '#14b8a6', active: false }
+        ];
+
+        // --- NAVIGATION ---
+        function showTab(n) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab${n}`).classList.remove('hidden');
+            document.getElementById(`btn${n}`).classList.add('active');
+            
+            if(n === 2) initAPCanvas();
+            if(n === 5) renderCompartmentModule();
+        }
+
+        // --- MOD I: GHK ---
+        function calcGHK() {
+            const pk = parseFloat(document.getElementById('rng-pk').value);
+            const pna = parseFloat(document.getElementById('rng-pna').value);
+            const pcl = parseFloat(document.getElementById('rng-pcl').value);
+
+            document.getElementById('lbl-pk').innerText = pk.toFixed(2);
+            document.getElementById('lbl-pna').innerText = pna.toFixed(2);
+            document.getElementById('lbl-pcl').innerText = pcl.toFixed(2);
+
+            // GHK Eq (simplified constant terms)
+            const num = (pk * 4) + (pna * 142) + (pcl * 4);
+            const den = (pk * 140) + (pna * 14) + (pcl * 105);
+            const vm = 61.5 * Math.log10(num / den);
+            
+            const display = document.getElementById('ghk-display');
+            const msg = document.getElementById('ghk-msg');
+            
+            display.innerText = `${vm.toFixed(1)} mV`;
+
+            if(vm > -55) {
+                display.className = "text-6xl font-mono text-red-500 font-bold tracking-tighter animate-pulse";
+                msg.innerText = "UMBRAL DE EXCITACIÓN";
+                msg.className = "text-[10px] mt-2 font-bold text-red-500 uppercase";
+            } else {
+                display.className = "text-6xl font-mono text-white font-bold tracking-tighter";
+                msg.innerText = "REPOSO ESTABLE";
+                msg.className = "text-[10px] mt-2 font-bold text-green-400 uppercase";
+            }
+        }
+
+        // --- MOD II: ACTION POTENTIAL ---
+        let ctx, apTimer, time = 0, points = [];
+        
+        function initAPCanvas() {
+            const c = document.getElementById('ap-canvas');
+            ctx = c.getContext('2d');
+            c.width = c.offsetWidth;
+            c.height = c.offsetHeight;
+        }
+
+        function fireAP() {
+            time = 0; points = [];
+            if(apTimer) clearInterval(apTimer);
+            
+            const gateM = document.getElementById('gate-m-bar');
+            const gateH = document.getElementById('gate-h-bar');
+            const readout = document.getElementById('ap-readout');
+            const phaseTxt = document.getElementById('ap-phase');
+
+            apTimer = setInterval(() => {
+                let v = -70;
+                if (time < 20) {
+                    v = -70; phaseTxt.innerText = "REPOSO";
+                    gateM.style.transform = "translateX(-100%)"; gateH.style.transform = "translateX(0%)";
+                } else if (time < 50) {
+                    v = -70 + (time - 20) * 4.3; phaseTxt.innerText = "DESPOLARIZACIÓN (Na+)";
+                    gateM.style.transform = "translateX(0%)";
+                } else if (time < 60) {
+                    v = 60; phaseTxt.innerText = "OVERSHOOT";
+                } else if (time < 100) {
+                    v = 60 - (time - 60) * 3.5; phaseTxt.innerText = "REPOLARIZACIÓN (K+)";
+                    gateH.style.transform = "translateX(100%)";
+                } else {
+                    v = -85 + (time - 100) * 0.3; phaseTxt.innerText = "HIPERPOLARIZACIÓN";
+                    if(time>130) { gateM.style.transform = "translateX(-100%)"; gateH.style.transform = "translateX(0%)"; }
+                }
+
+                readout.innerText = Math.round(v);
+                
+                const x = time * (ctx.canvas.width / 150);
+                const y = ctx.canvas.height - ((v + 100) / 180 * ctx.canvas.height);
+                points.push({x, y});
+
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 4;
+                ctx.beginPath();
+                points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+                ctx.stroke();
+
+                time++; if (time > 150) clearInterval(apTimer);
+            }, 25);
+        }
+
+        // --- MOD III: DARROW-YANNET ---
+        function setDarrow(type) {
+            const lec = document.getElementById('box-lec');
+            const lic = document.getElementById('box-lic');
+            const info = document.getElementById('dy-info');
+
+            lec.style.width = "33.3%"; lic.style.width = "66.6%";
+            lec.style.height = "60%"; lic.style.height = "60%";
+
+            switch(type) {
+                case 'iso-con':
+                    info.innerHTML = "<strong>Contracción Isotónica:</strong> Pérdida de LEC. Osmolaridad constante. Sin cambio en LIC.";
+                    setTimeout(() => { lec.style.width = "20%"; }, 100);
+                    break;
+                case 'hyper-con':
+                    info.innerHTML = "<strong>Contracción Hipertónica:</strong> Pérdida de agua. Osmolaridad sube. Agua sale del LIC. Ambos encogen.";
+                    setTimeout(() => { lec.style.height = "85%"; lic.style.height = "85%"; lec.style.width = "25%"; lic.style.width = "60%"; }, 100);
+                    break;
+                case 'hypo-exp':
+                    info.innerHTML = "<strong>Expansión Hipotónica (SIADH):</strong> Osmolaridad baja. Agua entra al LIC. Edema celular.";
+                    setTimeout(() => { lec.style.height = "35%"; lic.style.height = "35%"; lec.style.width = "40%"; lic.style.width = "80%"; }, 100);
+                    break;
+                case 'iso-exp':
+                    info.innerHTML = "<strong>Expansión Isotónica:</strong> Aumento de LEC sin cambios osmóticos.";
+                    setTimeout(() => { lec.style.width = "45%"; }, 100);
+                    break;
+            }
+        }
+
+        // --- MOD IV: BIOFISICA ---
+        function updateFick() {
+            const val = document.getElementById('fick-slider').value;
+            document.getElementById('fick-mem').style.width = `${val}px`;
+            const opacity = 1 - (val/100);
+            document.getElementById('fick-arrow').style.opacity = opacity;
+            document.getElementById('fick-arrow').style.transform = `scale(${opacity})`;
+            document.getElementById('fick-status').innerText = val > 50 ? "DIFUSIÓN CRÍTICA" : "DIFUSIÓN NORMAL";
+        }
+
+        function updateStarling() {
+            const pc = parseFloat(document.getElementById('pc-in').value);
+            const pi = parseFloat(document.getElementById('pi-in').value);
+            const net = pc - pi;
+            const arrow = document.getElementById('starling-arrow');
+            document.getElementById('starling-res').innerText = `Net: ${net} mmHg`;
+            
+            if(net > 0) {
+                arrow.className = "text-4xl text-red-600 transition-transform duration-300";
+                arrow.innerHTML = '<i class="fas fa-arrow-down"></i>';
+                arrow.style.transform = `translateY(${Math.min(20, net)}px)`;
+            } else {
+                arrow.className = "text-4xl text-blue-600 transition-transform duration-300";
+                arrow.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                arrow.style.transform = `translateY(-${Math.min(20, Math.abs(net))}px)`;
+            }
+        }
+
+        // --- MOD V: DINAMICA DE COMPARTIMENTOS (VISUALIZACIÓN DE IONES) ---
+        function renderCompartmentModule() {
+            const container = document.getElementById('comp-filter-container');
+            const tbody = document.getElementById('comp-table-body');
+            
+            container.innerHTML = ''; tbody.innerHTML = '';
+
+            ionData.forEach(ion => {
+                // Filter Chips
+                const chip = document.createElement('div');
+                chip.className = `filter-chip ${ion.active ? 'bg-white text-black' : 'inactive'} `;
+                if(ion.active) chip.style.backgroundColor = ion.color;
+                chip.innerText = ion.name;
+                chip.onclick = () => { ion.active = !ion.active; renderCompartmentModule(); };
+                container.appendChild(chip);
+
+                // Table Rows
+                if(ion.active) {
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="p-3 border-r border-gray-100">${ion.name}</td>
+                            <td class="p-3 text-center text-blue-600 font-mono">${ion.lec}</td>
+                            <td class="p-3 text-center text-red-600 font-mono">${ion.lic}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            renderParticles();
+        }
+
+        function renderParticles() {
+            const lecC = document.getElementById('comp-lec-viz');
+            const licC = document.getElementById('comp-lic-viz');
+            lecC.innerHTML = ''; licC.innerHTML = '';
+
+            ionData.forEach(ion => {
+                if(!ion.active) return;
+                
+                // Visual Ratio Scaling
+                const pLec = ion.lec > ion.lic ? 15 : 4;
+                const pLic = ion.lic > ion.lec ? 15 : 4;
+
+                for(let i=0; i<pLec; i++) spawnParticle(lecC, ion);
+                for(let i=0; i<pLic; i++) spawnParticle(licC, ion);
+            });
+        }
+
+        function spawnParticle(container, ion) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.backgroundColor = ion.color;
+            p.style.width = '8px'; p.style.height = '8px';
+            p.style.left = Math.random() * 90 + '%';
+            p.style.top = Math.random() * 90 + '%';
+            p.style.animationDuration = (2 + Math.random() * 3) + 's';
+            container.appendChild(p);
+        }
+
+        // Init
+        window.onload = () => { calcGHK(); updateFick(); updateStarling(); renderCompartmentModule(); };
+
+    </script>
+</body>
+</html>
